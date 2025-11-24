@@ -38,16 +38,16 @@ Courses belong to categories such as *Programming*, *Math*, *Business*, and *Des
 Run all commands inside your project folder.
 
 ### Step 1: Install Dependencies
-\`\`\`bash
+```bash
 composer install
 npm install
-\`\`\`
+```
 
 ### Step 2: Environment Setup
-\`\`\`bash
+```bash
 cp .env.example .env
 php artisan key:generate
-\`\`\`
+```
 
 ### Step 3: Database Setup
 
@@ -65,9 +65,9 @@ DB_PASSWORD=yourpassword
 \`\`\`
 
 ### Step 4: Run Migrations and Seeders
-\`\`\`bash
+```bash
 php artisan migrate:fresh --seed
-\`\`\`
+```
 
 Populates:
 - 4 categories  
@@ -76,15 +76,15 @@ Populates:
 - Sample lessons  
 
 ### Step 5: Link Storage
-\`\`\`bash
+```bash
 php artisan storage:link
-\`\`\`
+```
 
 ### Step 6: Start App
-\`\`\`bash
+```bash
 npm run dev
 php artisan serve
-\`\`\`
+```
 
 ---
 
@@ -180,9 +180,9 @@ php artisan serve
 
 ### G. Debugbar
 Installed using:
-\`\`\`bash
+```bash
 composer require barryvdh/laravel-debugbar --dev
-\`\`\`
+```
 
 Used for:
 - route debugging  
@@ -193,12 +193,12 @@ Used for:
 
 ### H. Cache Fixes
 Common commands used:
-\`\`\`bash
+```bash
 php artisan route:clear
 php artisan config:clear
 php artisan view:clear
 php artisan cache:clear
-\`\`\`
+```
 
 ---
 
@@ -264,12 +264,12 @@ php artisan cache:clear
 
 ## 9. Production Build
 
-\`\`\`bash
+```bash
 npm run build
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
-\`\`\`
+```
 
 Update `.env`:
 \`\`\`env
