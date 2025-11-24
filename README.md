@@ -49,6 +49,8 @@ cp .env.example .env
 php artisan key:generate
 ```
 
+### Note: need to run npm run dev before running Herd because without running npm run dev first the web will show errors.
+
 ### Step 3: Database Setup
 
 #### SQLite  
@@ -276,8 +278,3 @@ Update `.env`:
 APP_ENV=production
 APP_DEBUG=false
 \`\`\`
-
----
-
-
-Open:
