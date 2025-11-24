@@ -49,7 +49,7 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-### Note: need to run npm run dev before running Herd because without running npm run dev first the web will show errors.
+### Note: Need to run npm run dev before running Herd because without running npm run dev first the web will show errors.
 
 ### Step 3: Database Setup
 
@@ -58,13 +58,13 @@ No configuration required.
 
 #### MySQL Example  
 Update `.env`:
-\`\`\`env
+```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_DATABASE=mini_lms
 DB_USERNAME=root
 DB_PASSWORD=yourpassword
-\`\`\`
+```
 
 ### Step 4: Run Migrations and Seeders
 ```bash
@@ -274,7 +274,7 @@ php artisan view:cache
 ```
 
 Update `.env`:
-\`\`\`env
+```env
 APP_ENV=production
 APP_DEBUG=false
-\`\`\`
+```
