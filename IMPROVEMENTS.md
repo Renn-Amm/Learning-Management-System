@@ -4,6 +4,40 @@ This document tracks potential improvements and enhancements for the Mini LMS sy
 
 ## Completed Improvements
 
+### Version 1.5.0 (November 2025)
+
+**Category & Skills System:**
+- Implemented fixed category colors (Programming: Blue, Math: Green, Business: Pink, Design: Yellow)
+- Skills automatically inherit category colors
+- Inline skills creation in course forms (comma-separated)
+- Automatic text color contrast for readability
+- Skills reused across courses when names match
+
+**Enhanced Dashboards:**
+- Teacher dashboard with Recent Student Activity feed
+- Teacher dashboard with Student Progress Summary per course
+- Student dashboard with Continue button (smart next lesson finder)
+- Student dashboard with Suggested Courses grouped by category
+- Student dashboard with Recent Lessons viewed
+- Student dashboard with Achievements (completed courses, lessons viewed)
+
+**Conversation-Based Messaging:**
+- WhatsApp-style back-to-back chat interface
+- Unified conversation view per user
+- No more searching for people to reply to
+- Removed separate inbox/sent/compose pages
+
+**UI/UX Improvements:**
+- Strict black and white theme across all pages
+- Only skill tags use colors (category-based)
+- Improved dashboard layouts with better information architecture
+- Smart Continue button takes students to next unfinished lesson
+
+**Performance:**
+- Optimized dashboard queries with eager loading
+- Proper use of relationships to avoid N+1 queries
+- Data isolation (teachers see only their data, students see only theirs)
+
 ### Version 1.0.0
 
 **Architecture:**

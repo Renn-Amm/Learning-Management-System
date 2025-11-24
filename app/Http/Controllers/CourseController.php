@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\Category;
+use App\Models\Skill;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -13,14 +14,43 @@ class CourseController extends Controller
     {
         $categories = Category::all();
         
-        $query = Course::with('teacher', 'category')
+        $query = Course::with('teacher', 'category', 'skills')
             ->withCount('lessons', 'enrollments');
         
-        if ($request->has('category')) {
+        // Search functionality
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            
+            $query->where(function ($q) use ($searchTerm) {
+                // Search in course title and description
+                $q->where('title', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('description', 'LIKE', "%{$searchTerm}%")
+                  // Search in category name
+                  ->orWhereHas('category', function ($q) use ($searchTerm) {
+                      $q->where('name', 'LIKE', "%{$searchTerm}%");
+                  })
+                  // Search in skills
+                  ->orWhereHas('skills', function ($q) use ($searchTerm) {
+                      $q->where('name', 'LIKE', "%{$searchTerm}%");
+                  });
+            });
+        }
+        
+        // Category filter
+        if ($request->filled('category')) {
             $query->where('category_id', $request->category);
         }
         
-        $courses = $query->latest()->paginate(12);
+        $courses = $query->latest()->paginate(12)->withQueryString();
+
+        // Add enrollment status for students
+        if (auth()->user()->isStudent()) {
+            $enrolledCourseIds = auth()->user()->enrolledCourses()->pluck('courses.id')->toArray();
+            $courses->getCollection()->transform(function ($course) use ($enrolledCourseIds) {
+                $course->is_enrolled = in_array($course->id, $enrolledCourseIds);
+                return $course;
+            });
+        }
 
         return view('courses.index', compact('courses', 'categories'));
     }
@@ -28,7 +58,14 @@ class CourseController extends Controller
     public function create()
     {
         $categories = Category::all();
-        return view('courses.create', compact('categories'));
+        $skills = Skill::all();
+        
+        if ($categories->isEmpty()) {
+            return redirect()->route('dashboard')
+                ->with('error', 'No categories available. Please create a category first.');
+        }
+        
+        return view('courses.create', compact('categories', 'skills'));
     }
 
     public function store(Request $request)
@@ -38,7 +75,8 @@ class CourseController extends Controller
             'description' => 'required|string',
             'level' => 'required|in:beginner,intermediate,advanced',
             'category_id' => 'required|exists:categories,id',
-            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'skills' => 'nullable|string',
         ]);
 
         $validated['teacher_id'] = auth()->id();
@@ -47,14 +85,30 @@ class CourseController extends Controller
             $validated['thumbnail'] = $request->file('thumbnail')->store('thumbnails', 'public');
         }
 
+        unset($validated['skills']);
         $course = Course::create($validated);
+
+        // Handle comma-separated skills
+        if ($request->filled('skills')) {
+            $skillNames = array_map('trim', explode(',', $request->skills));
+            $skillIds = [];
+            
+            foreach ($skillNames as $skillName) {
+                if (!empty($skillName)) {
+                    $skill = Skill::firstOrCreate(['name' => $skillName]);
+                    $skillIds[] = $skill->id;
+                }
+            }
+            
+            $course->skills()->sync($skillIds);
+        }
 
         return redirect()->route('courses.show', $course)->with('success', 'Course created successfully.');
     }
 
     public function show(Course $course)
     {
-        $course->load('teacher', 'category', 'lessons');
+        $course->load('teacher', 'category', 'lessons', 'skills');
         $isEnrolled = auth()->check() && $course->isEnrolledBy(auth()->id());
         $enrollment = null;
 
@@ -72,7 +126,8 @@ class CourseController extends Controller
         }
 
         $categories = Category::all();
-        return view('courses.edit', compact('course', 'categories'));
+        $skills = Skill::all();
+        return view('courses.edit', compact('course', 'categories', 'skills'));
     }
 
     public function update(Request $request, Course $course)
@@ -86,7 +141,8 @@ class CourseController extends Controller
             'description' => 'required|string',
             'level' => 'required|in:beginner,intermediate,advanced',
             'category_id' => 'required|exists:categories,id',
-            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'skills' => 'nullable|string',
         ]);
 
         if ($request->hasFile('thumbnail')) {
@@ -96,7 +152,25 @@ class CourseController extends Controller
             $validated['thumbnail'] = $request->file('thumbnail')->store('thumbnails', 'public');
         }
 
+        unset($validated['skills']);
         $course->update($validated);
+
+        // Handle comma-separated skills
+        if ($request->filled('skills')) {
+            $skillNames = array_map('trim', explode(',', $request->skills));
+            $skillIds = [];
+            
+            foreach ($skillNames as $skillName) {
+                if (!empty($skillName)) {
+                    $skill = Skill::firstOrCreate(['name' => $skillName]);
+                    $skillIds[] = $skill->id;
+                }
+            }
+            
+            $course->skills()->sync($skillIds);
+        } else {
+            $course->skills()->sync([]);
+        }
 
         return redirect()->route('courses.show', $course)->with('success', 'Course updated successfully.');
     }

@@ -2,6 +2,123 @@
 
 All notable changes to the Mini LMS project will be documented in this file.
 
+## [1.5.1] - 2025-11-24 (Latest)
+
+### Added
+- **Auto-Color Generation for Categories:** New categories automatically get unique colors from a pool of 25 vibrant colors
+- **Search Functionality:** Search courses by title, description, category name, or skill names
+- **Search + Filter Combination:** Search and category filter work together seamlessly
+
+### Improved
+- **Category Creation:** No need to manually choose colors anymore
+- **Course Discovery:** Faster course finding with powerful search
+- **User Experience:** Clear button to reset search, search preserved when filtering
+
+### Verified
+- **Student File Downloads:** Confirmed working as implemented in v1.4.0
+
+## [1.5.0] - 2025-11-24
+
+### Added
+- **Category Fixed Colors:** Each category now has a fixed color (Programming: Blue, Math: Green, Business: Pink, Design: Yellow)
+- **Skills Inherit Category Colors:** Skills automatically use their course's category color
+- **Enhanced Teacher Dashboard:** Added Recent Student Activity and Student Progress Summary sections
+- **Enhanced Student Dashboard:** Added Continue button, Suggested Courses by category, Recent Lessons, and Achievements
+- **Conversation-Based Messaging:** Redesigned messaging to WhatsApp-style back-to-back chat
+- **Inline Skills Creation:** Skills created directly in course forms (comma-separated)
+
+### Changed
+- **Skills System:** Removed standalone skills management page, integrated into course creation
+- **Messaging UI:** Changed from inbox/sent/compose to conversation-based interface
+- **Student Dashboard:** Complete redesign with progress tracking and suggestions
+- **Teacher Dashboard:** Added activity feed and progress analytics
+- **Skills Display:** Skills now show with category color on all course views
+- **Continue Learning:** Smart button that finds next unfinished lesson
+
+### Improved
+- **Dashboard Performance:** Optimized queries with eager loading and proper relationships
+- **Styling Consistency:** Strict black and white theme across all pages (except skill tags)
+- **Text Contrast:** Automatic text color adjustment for readability on colored backgrounds
+- **Data Isolation:** Teachers see only their data, students see only their data
+
+### Database
+- Added `color_code` column to categories table
+- Set fixed colors for existing categories (Programming, Math, Business, Design)
+
+## [1.4.0] - 2025-11-24
+
+### Added
+- **Student-Teacher Chat System:** Complete messaging system with inbox, sent messages, compose, and message details
+- **Skills with Color Highlighting:** Teachers can create skills with custom background colors and automatic text contrast
+- **Private File Storage:** All lesson attachments now stored privately with secure download authorization
+- **Laravel Debugbar:** Development debugging tool for query and performance monitoring
+- **Email Notifications:** Teachers receive emails when students enroll in their courses
+- **Messages Navigation:** New messages link in main navigation for all users
+- **Skills Navigation:** New skills link for teachers to manage skills
+
+### Changed
+- **File Storage:** Moved from public to private disk for lesson attachments
+- **Download Links:** Attachments now use secure download route with permission checks
+- **Navigation:** Added Messages and Skills links to both desktop and mobile navigation
+- **Course Forms:** Added skills selection checkboxes to create/edit course forms
+- **Course Display:** Skills tags now displayed on course show page with colors
+
+### Security
+- **Directory Traversal Protection:** basename() prevents path manipulation attacks
+- **Download Authorization:** Users can only download files they have permission to access
+- **Message Privacy:** Users can only view messages they sent or received
+- **Role-Based File Access:** Teachers access own course files, students access enrolled course files
+
+## [1.3.0] - 2024-11-20
+
+### Added
+- **Lesson file attachments:** Teachers can upload images, PDFs, Word docs (max 10MB)
+- **Manual progress tracking:** Students must click "Mark as Done" button
+- Download button for lesson attachments
+- File upload fields in lesson create/edit forms
+- Completion status display for lessons
+- Success/info messages after marking lesson done
+
+### Changed
+- **Progress system:** From automatic to manual (student-controlled)
+- **Thumbnail validation:** Strictly images only (JPEG, PNG, GIF, WEBP)
+- **Lesson attachments:** Accept images, PDF, DOC, DOCX files
+- Students must actively mark lessons as complete
+- All lesson form styling updated to black/white
+- Lesson show page completely redesigned with attachment support
+
+### Fixed
+- File uploads properly validated and stored
+- Old files deleted when uploading replacements
+- Attachment storage path correctly configured
+- Manual progress prevents accidental double-marking
+
+## [1.2.0] - 2024-11-20
+
+### Added
+- Two-button system for students on course browse page: "View Details" + "Enroll"
+- Different course views: Overview for non-enrolled, full access for enrolled students
+- Lessons overview for non-enrolled students (titles and duration only)
+- Total course duration display (sum of all lesson durations)
+- Category creator tracking (user_id field in categories table)
+- Category authorization - only creator can edit/delete their categories
+- "Created by" label on categories showing who created them
+
+### Changed
+- Complete black and white color scheme across ALL pages
+- Course show page now has conditional display based on enrollment status
+- Non-enrolled students see lesson overview without access to content
+- Enrolled students see full lessons with view buttons
+- Categories index shows Edit/Delete buttons only for category creator
+- All buttons, borders, and UI elements now strictly black and white
+- Progress bars use black fill on white background with black borders
+
+### Fixed
+- All color inconsistencies removed (no more indigo, blue, or gray)
+- Category edit/delete authorization properly enforced
+- Course creation route verified and caches cleared
+- System categories (no creator) protected from editing
+
 ## [1.1.0] - 2024-11-19
 
 ### Added

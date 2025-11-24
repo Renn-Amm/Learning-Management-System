@@ -7,8 +7,8 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
+            <div class="bg-white overflow-hidden border border-black sm:rounded-lg">
+                <div class="p-6 text-black">
                     <h3 class="text-lg font-semibold mb-4">Courses in this category</h3>
 
                     @if($courses->isEmpty())
@@ -26,7 +26,7 @@
                                     @endif
                                     
                                     <div class="p-4">
-                                        <span class="text-xs px-2 py-1 bg-indigo-100 text-indigo-800 rounded">{{ ucfirst($course->level) }}</span>
+                                        <span class="text-xs px-2 py-1 bg-white border border-black text-black rounded">{{ ucfirst($course->level) }}</span>
                                         <h4 class="font-semibold text-lg mb-2 mt-2">{{ $course->title }}</h4>
                                         <p class="text-sm text-gray-600 mb-2">{{ Str::limit($course->description, 100) }}</p>
                                         <p class="text-sm text-gray-500 mb-2">Teacher: {{ $course->teacher->name }}</p>
@@ -34,7 +34,7 @@
                                             <span>{{ $course->lessons_count }} lessons</span>
                                             <span>{{ $course->enrollments_count }} students</span>
                                         </div>
-                                        <a href="{{ route('courses.show', $course) }}" class="block text-center bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded">
+                                        <a href="{{ route('courses.show', $course) }}" class="block text-center bg-black hover:bg-white hover:text-black border border-black text-white px-4 py-2 rounded">
                                             View Course
                                         </a>
                                     </div>

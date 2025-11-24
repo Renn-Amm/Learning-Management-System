@@ -13,10 +13,10 @@ This document tracks pending tasks, features, and improvements for the Mini LMS.
 
 ### High Priority
 - [ ] Add course search functionality
-- [ ] Implement automatic progress calculation based on completed lessons
+- [x] ~~Implement automatic progress calculation based on completed lessons~~ (Manual system implemented v1.3)
 - [ ] Add course preview for non-enrolled students
 - [ ] Create admin role for user management
-- [ ] Add email notifications for enrollments
+- [x] ~~Add email notifications for enrollments~~ (Completed v1.4)
 
 ## Features to Add
 
@@ -56,7 +56,7 @@ This document tracks pending tasks, features, and improvements for the Mini LMS.
 - [ ] Student performance charts
 
 ### Communication
-- [ ] In-app messaging between teachers and students
+- [x] ~~In-app messaging between teachers and students~~ (Conversation-based chat completed v1.5)
 - [ ] Course announcements
 - [ ] Discussion forums per course
 - [ ] Q&A section per lesson
@@ -314,18 +314,26 @@ No bugs reported yet.
 
 ## Version Planning
 
-### Version 1.1 (Next Release)
+### Version 1.5 (Current - Released November 2025)
+- [x] Category fixed colors
+- [x] Skills inherit category colors
+- [x] Enhanced teacher dashboard with activity and progress
+- [x] Enhanced student dashboard with continue, suggestions, achievements
+- [x] Conversation-based messaging
+- [x] Inline skills creation
+
+### Version 1.6 (Next Release)
 - Search functionality
-- Auto progress calculation
-- Email notifications
+- Course preview for non-enrolled students
 - User avatars
 - Course ratings
+- Admin dashboard
 
-### Version 1.2
+### Version 1.7
 - Quiz system
 - Assignments
 - Discussion forums
-- Analytics dashboard
+- Advanced analytics
 
 ### Version 2.0
 - Mobile app

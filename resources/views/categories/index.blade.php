@@ -4,7 +4,7 @@
             <h2 class="font-semibold text-xl text-gray-800 leading-tight">
                 Categories
             </h2>
-            <a href="{{ route('categories.create') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+            <a href="{{ route('categories.create') }}" class="bg-black hover:bg-white hover:text-black border border-black text-white px-4 py-2 rounded-md text-sm font-medium">
                 Create Category
             </a>
         </div>
@@ -24,30 +24,37 @@
                 </div>
             @endif
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
+            <div class="bg-white overflow-hidden border border-black sm:rounded-lg">
+                <div class="p-6 text-black">
                     @if($categories->isEmpty())
-                        <p class="text-gray-500">No categories created yet.</p>
+                        <p class="text-black">No categories created yet.</p>
                     @else
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             @foreach($categories as $category)
-                                <div class="border rounded-lg p-6 hover:shadow-lg transition">
-                                    <h3 class="text-lg font-semibold mb-2">{{ $category->name }}</h3>
-                                    <p class="text-sm text-gray-600 mb-4">{{ $category->courses_count }} courses</p>
+                                <div class="border border-black rounded-lg p-6 hover:shadow-lg transition">
+                                    <h3 class="text-lg font-semibold mb-2 text-black">{{ $category->name }}</h3>
+                                    <p class="text-sm text-black mb-2">{{ $category->courses_count }} courses</p>
+                                    @if($category->user)
+                                        <p class="text-xs text-black mb-4">Created by: {{ $category->user->name }}</p>
+                                    @else
+                                        <p class="text-xs text-black mb-4">System Category</p>
+                                    @endif
                                     <div class="flex gap-2">
-                                        <a href="{{ route('categories.show', $category) }}" class="flex-1 text-center bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded text-sm">
+                                        <a href="{{ route('categories.show', $category) }}" class="flex-1 text-center bg-black hover:bg-white hover:text-black border border-black text-white px-3 py-2 rounded text-sm">
                                             View
                                         </a>
-                                        <a href="{{ route('categories.edit', $category) }}" class="flex-1 text-center bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-sm">
-                                            Edit
-                                        </a>
-                                        <form action="{{ route('categories.destroy', $category) }}" method="POST" onsubmit="return confirm('Are you sure?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm">
-                                                Delete
-                                            </button>
-                                        </form>
+                                        @if($category->user_id && $category->user_id === auth()->id())
+                                            <a href="{{ route('categories.edit', $category) }}" class="flex-1 text-center bg-white hover:bg-black hover:text-white border border-black text-black px-3 py-2 rounded text-sm">
+                                                Edit
+                                            </a>
+                                            <form action="{{ route('categories.destroy', $category) }}" method="POST" onsubmit="return confirm('Are you sure?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="bg-white hover:bg-black hover:text-white border border-black text-black px-3 py-2 rounded text-sm">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </div>
                             @endforeach

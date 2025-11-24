@@ -20,7 +20,7 @@
                         </div>
 
                         <div class="flex items-center justify-end gap-4 mt-6">
-                            <a href="{{ route('categories.index') }}" class="text-gray-600 hover:text-gray-900">Cancel</a>
+                            <a href="{{ route('categories.index') }}" class="text-black hover:underline">Cancel</a>
                             <x-primary-button>Update Category</x-primary-button>
                         </div>
                     </form>

@@ -7,9 +7,9 @@
 
     <div class="py-12">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="bg-white overflow-hidden border border-black sm:rounded-lg">
                 <div class="p-6">
-                    <form action="{{ route('lessons.store', $course) }}" method="POST">
+                    <form action="{{ route('lessons.store', $course) }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
                         <div class="mb-4">
@@ -20,8 +20,15 @@
 
                         <div class="mb-4">
                             <x-input-label for="content" value="Lesson Content" />
-                            <textarea id="content" name="content" rows="8" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>{{ old('content') }}</textarea>
+                            <textarea id="content" name="content" rows="8" class="mt-1 block w-full border-black rounded-md shadow-sm focus:border-black focus:ring-black" required>{{ old('content') }}</textarea>
                             <x-input-error class="mt-2" :messages="$errors->get('content')" />
+                        </div>
+
+                        <div class="mb-4">
+                            <x-input-label for="attachment" value="Attachment (Optional)" />
+                            <input id="attachment" name="attachment" type="file" accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx" class="mt-1 block w-full border border-black rounded-md p-2" />
+                            <p class="text-xs text-black mt-1">Accepted: Images (JPG, PNG, GIF), PDF, Word (DOC, DOCX) - Max 10MB</p>
+                            <x-input-error class="mt-2" :messages="$errors->get('attachment')" />
                         </div>
 
                         <div class="mb-4">
@@ -37,7 +44,7 @@
                         </div>
 
                         <div class="flex items-center justify-end gap-4 mt-6">
-                            <a href="{{ route('courses.show', $course) }}" class="text-gray-600 hover:text-gray-900">Cancel</a>
+                            <a href="{{ route('courses.show', $course) }}" class="text-black hover:underline">Cancel</a>
                             <x-primary-button>Create Lesson</x-primary-button>
                         </div>
                     </form>

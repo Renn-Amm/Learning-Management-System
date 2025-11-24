@@ -49,4 +49,9 @@ class Course extends Model
     {
         return $this->enrollments()->where('user_id', $userId)->exists();
     }
+
+    public function skills()
+    {
+        return $this->belongsToMany(Skill::class);
+    }
 }

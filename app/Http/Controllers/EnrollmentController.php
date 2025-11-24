@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\StudentJoinedCourse;
 use App\Models\Course;
 use App\Models\Enrollment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class EnrollmentController extends Controller
 {
@@ -26,6 +28,10 @@ class EnrollmentController extends Controller
             'progress' => 0,
             'is_completed' => false,
         ]);
+
+        // Send email notification to teacher
+        $course->load('teacher');
+        Mail::to($course->teacher->email)->send(new StudentJoinedCourse($user, $course));
 
         return redirect()->route('courses.show', $course)->with('success', 'Successfully enrolled in the course.');
     }

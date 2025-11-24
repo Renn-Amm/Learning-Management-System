@@ -13,6 +13,7 @@ class Lesson extends Model
         'course_id',
         'title',
         'content',
+        'attachment',
         'order_number',
         'duration',
     ];

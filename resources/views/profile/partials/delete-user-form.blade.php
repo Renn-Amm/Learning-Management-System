@@ -43,11 +43,11 @@
             </div>
 
             <div class="mt-6 flex justify-end">
-                <button type="button" x-on:click="$dispatch('close')" class="text-gray-600 hover:text-gray-900 px-4 py-2">
+                <button type="button" x-on:click="$dispatch('close')" class="text-black hover:underline px-4 py-2">
                     Cancel
                 </button>
 
-                <x-primary-button class="ms-3 bg-red-600 hover:bg-red-700">
+                <x-primary-button class="ms-3 bg-black hover:bg-white hover:text-black border border-black">
                     Delete Account
                 </x-primary-button>
             </div>
