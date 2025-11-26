@@ -3,23 +3,43 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class CategoryController extends Controller
 {
+    use AuthorizesRequests;
+    /**
+     * Display a listing of categories with caching.
+     * Cache is cleared when categories are created, updated, or deleted.
+     */
     public function index()
     {
-        $categories = Category::with('user')->withCount('courses')->get();
+        // Authorization: Only teachers can view categories
+        $this->authorize('viewAny', Category::class);
+
+        // Cache categories list for 60 minutes to reduce database queries
+        $categories = Cache::remember('categories.index', 3600, function () {
+            return Category::with('user')->withCount('courses')->get();
+        });
+
         return view('categories.index', compact('categories'));
     }
 
     public function create()
     {
+        // Authorization: Only teachers can create categories
+        $this->authorize('create', Category::class);
+
         return view('categories.create');
     }
 
     public function store(Request $request)
     {
+        // Authorization: Only teachers can create categories
+        $this->authorize('create', Category::class);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:categories',
         ]);
@@ -28,6 +48,9 @@ class CategoryController extends Controller
         $validated['color_code'] = $this->generateUniqueColor();
 
         Category::create($validated);
+
+        // Clear categories cache after creating new category
+        Cache::forget('categories.index');
 
         return redirect()->route('categories.index')->with('success', 'Category created successfully.');
     }
@@ -61,18 +84,16 @@ class CategoryController extends Controller
 
     public function edit(Category $category)
     {
-        if ($category->user_id && $category->user_id !== auth()->id()) {
-            abort(403, 'You can only edit categories you created.');
-        }
+        // Authorization: Only category owner can edit
+        $this->authorize('update', $category);
 
         return view('categories.edit', compact('category'));
     }
 
     public function update(Request $request, Category $category)
     {
-        if ($category->user_id && $category->user_id !== auth()->id()) {
-            abort(403, 'You can only update categories you created.');
-        }
+        // Authorization: Only category owner can update
+        $this->authorize('update', $category);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
@@ -80,20 +101,25 @@ class CategoryController extends Controller
 
         $category->update($validated);
 
+        // Clear categories cache after updating
+        Cache::forget('categories.index');
+
         return redirect()->route('categories.index')->with('success', 'Category updated successfully.');
     }
 
     public function destroy(Category $category)
     {
-        if ($category->user_id && $category->user_id !== auth()->id()) {
-            abort(403, 'You can only delete categories you created.');
-        }
+        // Authorization: Only category owner can delete, and only if no courses
+        $this->authorize('delete', $category);
 
         if ($category->courses()->count() > 0) {
             return redirect()->route('categories.index')->with('error', 'Cannot delete category with existing courses.');
         }
 
         $category->delete();
+
+        // Clear categories cache after deleting
+        Cache::forget('categories.index');
 
         return redirect()->route('categories.index')->with('success', 'Category deleted successfully.');
     }

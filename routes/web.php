@@ -11,19 +11,21 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SkillController;
 use Illuminate\Support\Facades\Route;
 
+// Cached welcome page - cache for 1 hour
 Route::get('/', function () {
     return response()
         ->view('welcome-lms')
-        ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
-        ->header('Pragma', 'no-cache')
-        ->header('Expires', '0');
-});
+        ->header('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+})->name('welcome');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('/profile/name', [ProfileController::class, 'updateName'])->name('profile.updateName');
+    Route::post('/profile/image', [ProfileController::class, 'updateProfileImage'])->name('profile.updateImage');
+    Route::delete('/profile/image', [ProfileController::class, 'deleteProfileImage'])->name('profile.deleteImage');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Teacher routes MUST come BEFORE the resource routes
@@ -33,6 +35,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/courses/{course}/edit', [CourseController::class, 'edit'])->name('courses.edit');
         Route::put('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
         Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
+        
+        // Non-CRUD actions for courses
+        Route::patch('/courses/{course}/publish', [CourseController::class, 'publish'])->name('courses.publish');
+        Route::patch('/courses/{course}/unpublish', [CourseController::class, 'unpublish'])->name('courses.unpublish');
 
         Route::get('/courses/{course}/lessons/create', [LessonController::class, 'create'])->name('lessons.create');
         Route::post('/courses/{course}/lessons', [LessonController::class, 'store'])->name('lessons.store');
@@ -44,11 +50,15 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('skills', SkillController::class);
     });
 
-    // Messages (accessible by all authenticated users)
+    // Messages (accessible by all authenticated users) - Full CRUD
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
-    Route::get('/messages/new', [MessageController::class, 'create'])->name('messages.new');
-    Route::get('/messages/{user}', [MessageController::class, 'conversation'])->name('messages.conversation');
+    Route::get('/messages/new', [MessageController::class, 'create'])->name('messages.create');
+    Route::get('/messages/conversation/{user}', [MessageController::class, 'conversation'])->name('messages.conversation');
     Route::post('/messages/{user}', [MessageController::class, 'store'])->name('messages.store');
+    Route::get('/messages/{message}', [MessageController::class, 'show'])->name('messages.show');
+    Route::get('/messages/{message}/edit', [MessageController::class, 'edit'])->name('messages.edit');
+    Route::put('/messages/{message}', [MessageController::class, 'update'])->name('messages.update');
+    Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->name('messages.destroy');
 
     // Secure file downloads
     Route::get('/download/{file}', [FileController::class, 'download'])->name('file.download');

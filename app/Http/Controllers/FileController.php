@@ -3,11 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lesson;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class FileController extends Controller
 {
+    use AuthorizesRequests;
+    /**
+     * Download a file with authorization check.
+     * Authorization: Students can download if enrolled, teachers if they own the course.
+     * Security: Prevents directory traversal attacks with basename().
+     */
     public function download(Request $request, $file)
     {
         // Prevent directory traversal attacks
@@ -20,21 +27,10 @@ class FileController extends Controller
             abort(404, 'File not found');
         }
         
-        // Check authorization
-        $user = auth()->user();
-        $course = $lesson->course;
+        // Authorization: Use policy to check if user can download lesson files
+        $this->authorize('downloadFile', $lesson);
         
-        // Teachers can download their own course files
-        if ($user->isTeacher() && $course->teacher_id === $user->id) {
-            return $this->downloadFile($lesson->attachment);
-        }
-        
-        // Students can download if enrolled
-        if ($user->isStudent() && $course->isEnrolledBy($user->id)) {
-            return $this->downloadFile($lesson->attachment);
-        }
-        
-        abort(403, 'Unauthorized access to this file');
+        return $this->downloadFile($lesson->attachment);
     }
     
     private function downloadFile($filepath)

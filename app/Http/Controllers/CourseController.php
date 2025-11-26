@@ -5,17 +5,25 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\Category;
 use App\Models\Skill;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class CourseController extends Controller
 {
+    use AuthorizesRequests;
     public function index(Request $request)
     {
         $categories = Category::all();
         
-        $query = Course::with('teacher', 'category', 'skills')
+        // Eager load relationships to prevent N+1 queries
+        $query = Course::with(['teacher', 'category', 'skills'])
             ->withCount('lessons', 'enrollments');
+        
+        // Show only published courses to students, all courses to teachers
+        if (auth()->user()->isStudent()) {
+            $query->where('is_published', true);
+        }
         
         // Search functionality
         if ($request->filled('search')) {
@@ -57,6 +65,9 @@ class CourseController extends Controller
 
     public function create()
     {
+        // Authorization: Only teachers can create courses
+        $this->authorize('create', Course::class);
+
         $categories = Category::all();
         $skills = Skill::all();
         
@@ -76,7 +87,7 @@ class CourseController extends Controller
             'level' => 'required|in:beginner,intermediate,advanced',
             'category_id' => 'required|exists:categories,id',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'skills' => 'nullable|string',
+            'skills' => 'required|string|min:2',
         ]);
 
         $validated['teacher_id'] = auth()->id();
@@ -93,9 +104,17 @@ class CourseController extends Controller
             $skillNames = array_map('trim', explode(',', $request->skills));
             $skillIds = [];
             
+            // Get category color for skills
+            $category = Category::find($validated['category_id']);
+            $colorCode = $category->color_code;
+            
             foreach ($skillNames as $skillName) {
                 if (!empty($skillName)) {
-                    $skill = Skill::firstOrCreate(['name' => $skillName]);
+                    // Create skill with category's color code
+                    $skill = Skill::firstOrCreate(
+                        ['name' => $skillName],
+                        ['color_code' => $colorCode]
+                    );
                     $skillIds[] = $skill->id;
                 }
             }
@@ -108,7 +127,8 @@ class CourseController extends Controller
 
     public function show(Course $course)
     {
-        $course->load('teacher', 'category', 'lessons', 'skills');
+        // Eager load relationships to prevent N+1 queries
+        $course->load(['teacher', 'category', 'lessons', 'skills']);
         $isEnrolled = auth()->check() && $course->isEnrolledBy(auth()->id());
         $enrollment = null;
 
@@ -121,9 +141,8 @@ class CourseController extends Controller
 
     public function edit(Course $course)
     {
-        if ($course->teacher_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
-        }
+        // Authorization: Only course owner can edit
+        $this->authorize('update', $course);
 
         $categories = Category::all();
         $skills = Skill::all();
@@ -132,9 +151,8 @@ class CourseController extends Controller
 
     public function update(Request $request, Course $course)
     {
-        if ($course->teacher_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
-        }
+        // Authorization: Only course owner can update
+        $this->authorize('update', $course);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -142,7 +160,7 @@ class CourseController extends Controller
             'level' => 'required|in:beginner,intermediate,advanced',
             'category_id' => 'required|exists:categories,id',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
-            'skills' => 'nullable|string',
+            'skills' => 'required|string|min:2',
         ]);
 
         if ($request->hasFile('thumbnail')) {
@@ -160,9 +178,17 @@ class CourseController extends Controller
             $skillNames = array_map('trim', explode(',', $request->skills));
             $skillIds = [];
             
+            // Get category color for skills
+            $category = Category::find($validated['category_id']);
+            $colorCode = $category->color_code;
+            
             foreach ($skillNames as $skillName) {
                 if (!empty($skillName)) {
-                    $skill = Skill::firstOrCreate(['name' => $skillName]);
+                    // Create skill with category's color code
+                    $skill = Skill::firstOrCreate(
+                        ['name' => $skillName],
+                        ['color_code' => $colorCode]
+                    );
                     $skillIds[] = $skill->id;
                 }
             }
@@ -177,9 +203,8 @@ class CourseController extends Controller
 
     public function destroy(Course $course)
     {
-        if ($course->teacher_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
-        }
+        // Authorization: Only course owner can delete
+        $this->authorize('delete', $course);
 
         if ($course->thumbnail) {
             Storage::disk('public')->delete($course->thumbnail);
@@ -188,5 +213,43 @@ class CourseController extends Controller
         $course->delete();
 
         return redirect()->route('dashboard')->with('success', 'Course deleted successfully.');
+    }
+
+    /**
+     * NON-CRUD ACTION: Publish a course
+     * Makes the course visible to students for enrollment.
+     * Only the course owner (teacher) can publish their course.
+     */
+    public function publish(Course $course)
+    {
+        // Authorization: Only course owner can publish
+        $this->authorize('publish', $course);
+
+        if ($course->is_published) {
+            return redirect()->back()->with('error', 'Course is already published.');
+        }
+
+        $course->update(['is_published' => true]);
+
+        return redirect()->back()->with('success', 'Course published successfully. Students can now enroll.');
+    }
+
+    /**
+     * NON-CRUD ACTION: Unpublish a course
+     * Hides the course from students but keeps existing enrollments.
+     * Only the course owner (teacher) can unpublish their course.
+     */
+    public function unpublish(Course $course)
+    {
+        // Authorization: Only course owner can unpublish
+        $this->authorize('publish', $course);
+
+        if (!$course->is_published) {
+            return redirect()->back()->with('error', 'Course is already unpublished.');
+        }
+
+        $course->update(['is_published' => false]);
+
+        return redirect()->back()->with('success', 'Course unpublished. No new students can enroll, but existing enrollments remain active.');
     }
 }

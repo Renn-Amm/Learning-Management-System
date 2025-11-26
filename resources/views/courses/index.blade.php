@@ -59,16 +59,20 @@
                     @else
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             @foreach($courses as $course)
-                                <div class="border rounded-lg overflow-hidden hover:shadow-lg transition">
+                                <div class="border rounded-lg overflow-hidden hover:shadow-lg transition flex flex-col h-full">
                                     @if($course->thumbnail)
                                         <img src="{{ asset('storage/' . $course->thumbnail) }}" alt="{{ $course->title }}" class="w-full h-48 object-cover">
                                     @else
-                                        <div class="w-full h-48 bg-white border border-black flex items-center justify-center">
-                                            <span class="text-black">No thumbnail</span>
+                                        {{-- Thumbnail fallback: Display category name --}}
+                                        <div class="w-full h-48 bg-white border-2 border-black flex items-center justify-center">
+                                            <div class="text-center px-4">
+                                                <p class="text-2xl font-bold text-black">{{ $course->category->name }}</p>
+                                                <p class="text-sm text-gray-600 mt-2">{{ $course->title }}</p>
+                                            </div>
                                         </div>
                                     @endif
                                     
-                                    <div class="p-4">
+                                    <div class="p-4 flex flex-col flex-1">
                                         <div class="flex items-center gap-2 mb-2">
                                             <span class="text-xs px-2 py-1 bg-white border border-black text-black rounded">{{ ucfirst($course->level) }}</span>
                                             <span class="text-xs px-2 py-1 bg-white border border-black text-black rounded">{{ $course->category->name }}</span>
@@ -92,6 +96,7 @@
                                             <span>{{ $course->enrollments_count }} students</span>
                                         </div>
                                         
+                                        <div class="mt-auto">
                                         @if(auth()->user()->isStudent())
                                             @if(isset($course->is_enrolled) && $course->is_enrolled)
                                                 <div class="mb-2">
@@ -118,6 +123,7 @@
                                                 View Details
                                             </a>
                                         @endif
+                                        </div>
                                     </div>
                                 </div>
                             @endforeach

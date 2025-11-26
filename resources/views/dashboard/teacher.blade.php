@@ -82,8 +82,12 @@
                                     @if($course->thumbnail)
                                         <img src="{{ asset('storage/' . $course->thumbnail) }}" alt="{{ $course->title }}" class="w-full h-48 object-cover">
                                     @else
-                                        <div class="w-full h-48 bg-white border-b border-black flex items-center justify-center">
-                                            <span class="text-black">No thumbnail</span>
+                                        {{-- Thumbnail fallback: Display category name --}}
+                                        <div class="w-full h-48 bg-white border-2 border-black flex items-center justify-center">
+                                            <div class="text-center px-4">
+                                                <p class="text-2xl font-bold text-black">{{ $course->category->name }}</p>
+                                                <p class="text-sm text-gray-600 mt-2">{{ $course->title }}</p>
+                                            </div>
                                         </div>
                                     @endif
                                     

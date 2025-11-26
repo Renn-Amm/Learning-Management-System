@@ -14,16 +14,20 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        // Define categories with specific colors
         $categories = [
-            'Programming',
-            'Math',
-            'Business',
-            'Design',
+            'Programming' => '#4ECDC4',  // Teal/Blue
+            'Math' => '#52B788',         // Green
+            'Business' => '#FB5607',     // Orange
+            'Design' => '#8338EC',       // Purple
         ];
 
         $createdCategories = [];
-        foreach ($categories as $categoryName) {
-            $createdCategories[$categoryName] = Category::create(['name' => $categoryName]);
+        foreach ($categories as $categoryName => $colorCode) {
+            $createdCategories[$categoryName] = Category::create([
+                'name' => $categoryName,
+                'color_code' => $colorCode
+            ]);
         }
 
         $teacher = User::create([

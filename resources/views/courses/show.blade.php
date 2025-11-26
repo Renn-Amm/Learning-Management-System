@@ -25,6 +25,26 @@
                     <a href="{{ route('courses.edit', $course) }}" class="bg-white hover:bg-black hover:text-white border border-black text-black px-4 py-2 rounded-md text-sm">
                         Edit Course
                     </a>
+                    
+                    {{-- Non-CRUD Actions: Publish/Unpublish --}}
+                    @if($course->is_published)
+                        <form action="{{ route('courses.unpublish', $course) }}" method="POST">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" class="bg-white hover:bg-black hover:text-white border border-black text-black px-4 py-2 rounded-md text-sm">
+                                Unpublish
+                            </button>
+                        </form>
+                    @else
+                        <form action="{{ route('courses.publish', $course) }}" method="POST">
+                            @csrf
+                            @method('PATCH')
+                            <button type="submit" class="bg-black hover:bg-white hover:text-black border border-black text-white px-4 py-2 rounded-md text-sm">
+                                Publish
+                            </button>
+                        </form>
+                    @endif
+                    
                     <form action="{{ route('courses.destroy', $course) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this course?')">
                         @csrf
                         @method('DELETE')
@@ -61,11 +81,24 @@
                         <div class="p-6">
                             @if($course->thumbnail)
                                 <img src="{{ asset('storage/' . $course->thumbnail) }}" alt="{{ $course->title }}" class="w-full h-64 object-cover rounded mb-4">
+                            @else
+                                {{-- Thumbnail fallback: Display category name --}}
+                                <div class="w-full h-64 bg-white border-2 border-black rounded flex items-center justify-center mb-4">
+                                    <div class="text-center px-4">
+                                        <p class="text-4xl font-bold text-black">{{ $course->category->name }}</p>
+                                        <p class="text-lg text-gray-600 mt-3">{{ $course->title }}</p>
+                                    </div>
+                                </div>
                             @endif
 
                             <div class="flex items-center gap-2 mb-4">
                                 <span class="text-sm px-3 py-1 bg-white border border-black text-black rounded">{{ ucfirst($course->level) }}</span>
                                 <span class="text-sm px-3 py-1 bg-white border border-black text-black rounded">{{ $course->category->name }}</span>
+                                @if(auth()->user()->isTeacher() && $course->teacher_id === auth()->id())
+                                    <span class="text-sm px-3 py-1 {{ $course->is_published ? 'bg-black text-white' : 'bg-white text-black' }} border border-black rounded">
+                                        {{ $course->is_published ? 'Published' : 'Unpublished' }}
+                                    </span>
+                                @endif
                             </div>
 
                             @if($course->skills->isNotEmpty())

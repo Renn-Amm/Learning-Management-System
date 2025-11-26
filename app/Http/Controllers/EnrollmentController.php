@@ -29,7 +29,8 @@ class EnrollmentController extends Controller
             'is_completed' => false,
         ]);
 
-        // Send email notification to teacher
+        // Send email notification to the teacher's login email
+        // Uses the email from users table that teacher uses to login
         $course->load('teacher');
         Mail::to($course->teacher->email)->send(new StudentJoinedCourse($user, $course));
 

@@ -47,8 +47,12 @@
                                         @if($course->thumbnail)
                                             <img src="{{ asset('storage/' . $course->thumbnail) }}" alt="{{ $course->title }}" class="w-32 h-32 object-cover rounded">
                                         @else
-                                            <div class="w-32 h-32 bg-white border border-black rounded flex items-center justify-center">
-                                                <span class="text-black text-xs">No image</span>
+                                            {{-- Thumbnail fallback: Display category name --}}
+                                            <div class="w-32 h-32 bg-white border-2 border-black rounded flex items-center justify-center">
+                                                <div class="text-center px-2">
+                                                    <p class="text-sm font-bold text-black leading-tight">{{ $course->category->name }}</p>
+                                                    <p class="text-xs text-gray-600 mt-1">{{ Str::limit($course->title, 30) }}</p>
+                                                </div>
                                             </div>
                                         @endif
                                         
@@ -71,7 +75,11 @@
                                             @endif
                                             
                                             <div class="mt-3">
-                                                @if($course->next_lesson)
+                                                @if($course->progress >= 100)
+                                                    <a href="{{ route('courses.show', $course) }}" class="bg-black hover:bg-white hover:text-black border-2 border-black text-white px-4 py-2 rounded text-sm">
+                                                        Review
+                                                    </a>
+                                                @elseif($course->next_lesson)
                                                     <a href="{{ route('lessons.show', $course->next_lesson) }}" class="bg-black hover:bg-white hover:text-black border-2 border-black text-white px-4 py-2 rounded text-sm">
                                                         Continue
                                                     </a>
@@ -118,10 +126,10 @@
 
             <div class="bg-white overflow-hidden border border-black rounded-lg">
                 <div class="p-6 text-black">
-                    <h3 class="text-lg font-semibold mb-4">Suggested Courses</h3>
+                    <h3 class="text-lg font-semibold mb-4">New Courses</h3>
 
                     @if($suggestedCourses->isEmpty())
-                        <p class="text-black">No suggestions available.</p>
+                        <p class="text-black">No new courses available.</p>
                     @else
                         @foreach($suggestedCourses as $category)
                             <div class="mb-6">

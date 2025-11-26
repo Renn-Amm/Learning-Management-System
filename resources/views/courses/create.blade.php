@@ -65,17 +65,18 @@
                         </div>
 
                         <div class="mb-4">
-                            <x-input-label for="skills" value="Skills (optional - separate with commas)" />
+                            <x-input-label for="skills" value="Skills (separate with commas)" />
                             <input 
                                 id="skills" 
                                 name="skills" 
                                 type="text" 
                                 placeholder="e.g., Laravel, Vue.js, TailwindCSS"
                                 value="{{ old('skills') }}"
-                                class="mt-1 block w-full border border-black rounded-md p-2"
-                            >
-                            <p class="text-xs text-gray-600 mt-1">Enter skill names separated by commas. Each skill will be displayed with a unique color.</p>
+                                class="mt-1 block w-full border-black rounded-md shadow-sm focus:border-black focus:ring-black"
+                                required
+                            />
                             <x-input-error class="mt-2" :messages="$errors->get('skills')" />
+                            <p class="text-sm text-gray-600 mt-1">Required: Enter at least one skill for this course</p>
                         </div>
 
                         <div class="mb-4">

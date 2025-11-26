@@ -16,7 +16,14 @@
                         Courses
                     </x-nav-link>
                     <x-nav-link :href="route('messages.index')" :active="request()->routeIs('messages.*')">
-                        Messages
+                        <span class="flex items-center">
+                            Messages
+                            @if($unreadMessagesCount > 0)
+                                <span class="ml-2 bg-black text-white text-xs font-bold px-2 py-1 rounded-full">
+                                    {{ $unreadMessagesCount }}
+                                </span>
+                            @endif
+                        </span>
                     </x-nav-link>
                     @if(auth()->user()->isTeacher())
                         <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">
@@ -76,7 +83,14 @@
                 Courses
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('messages.index')" :active="request()->routeIs('messages.*')">
-                Messages
+                <span class="flex items-center">
+                    Messages
+                    @if($unreadMessagesCount > 0)
+                        <span class="ml-2 bg-black text-white text-xs font-bold px-2 py-1 rounded-full">
+                            {{ $unreadMessagesCount }}
+                        </span>
+                    @endif
+                </span>
             </x-responsive-nav-link>
             @if(auth()->user()->isTeacher())
                 <x-responsive-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.*')">

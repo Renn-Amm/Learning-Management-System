@@ -16,6 +16,11 @@ class Course extends Model
         'level',
         'teacher_id',
         'category_id',
+        'is_published',
+    ];
+
+    protected $casts = [
+        'is_published' => 'boolean',
     ];
 
     public function teacher()

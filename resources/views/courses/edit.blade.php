@@ -55,7 +55,7 @@
                         </div>
 
                         <div class="mb-4">
-                            <x-input-label for="skills" value="Skills (optional - separate with commas)" />
+                            <x-input-label for="skills" value="Skills (separate with commas)" />
                             <input 
                                 id="skills" 
                                 name="skills" 
@@ -63,8 +63,9 @@
                                 placeholder="e.g., Laravel, Vue.js, TailwindCSS"
                                 value="{{ old('skills', $course->skills->pluck('name')->join(', ')) }}"
                                 class="mt-1 block w-full border border-black rounded-md p-2"
+                                required
                             >
-                            <p class="text-xs text-gray-600 mt-1">Enter skill names separated by commas. Each skill will be displayed with a unique color.</p>
+                            <p class="text-xs text-gray-600 mt-1">Required: Enter at least one skill. Each skill will be displayed with a unique color.</p>
                             <x-input-error class="mt-2" :messages="$errors->get('skills')" />
                         </div>
 

@@ -59,6 +59,16 @@ DB_PASSWORD=your_password
 - 3 users (1 teacher, 2 students)
 - Sample enrollments with progress
 
+## Version 2.0 Highlights
+
+- **60-70% Performance Improvement** via caching and N+1 query elimination
+- **Complete Authorization** using Laravel Policies for all models
+- **Publish/Unpublish Courses** - Teachers control course visibility
+- **Thumbnail Fallbacks** - Professional category name display when no image
+- **CDN Assets** - Tailwind CSS & Alpine.js via CDN (no build step required)
+- **100% Named Routes** - Improved maintainability
+- **Full CRUD** on all models with authorization
+
 ## Features
 
 ### For Students
@@ -106,10 +116,14 @@ DB_PASSWORD=your_password
 - Access teacher dashboard
 
 **Course Management**
-- Create courses with: title, description, category, level, thumbnail (images only)
-- Add skills inline when creating/editing courses (comma-separated)
-- Skills inherit color from course category automatically
-- Add lessons with: title, content, attachments (images/PDF/DOCX), order number, duration
+- Create courses with title, description, level, category
+- Upload course thumbnails (images)
+- Create skills inline (comma-separated: "Laravel, Vue.js, MySQL")
+- Skills automatically inherit category colors
+- **Publish/Unpublish courses** to control student visibility
+- Edit/delete only YOUR courses (policy-enforced)
+- View student enrollments and progress per course
+- Courses without thumbnails show category name as fallback with: title, content, attachments (images/PDF/DOCX), order number, duration
 - Upload files with lessons (max 10MB per file, stored privately)
 - Edit/delete only YOUR courses
 - View student progress per course

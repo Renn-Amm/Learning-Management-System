@@ -14,6 +14,7 @@ class Lesson extends Model
         'title',
         'content',
         'attachment',
+        'attachment_name',
         'order_number',
         'duration',
     ];

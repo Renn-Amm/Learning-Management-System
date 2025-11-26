@@ -4,7 +4,7 @@
             <h2 class="font-semibold text-xl text-black leading-tight">
                 Messages
             </h2>
-            <a href="{{ route('messages.new') }}" class="bg-black hover:bg-white hover:text-black border-2 border-black text-white px-4 py-2 rounded">
+            <a href="{{ route('messages.create') }}" class="bg-black hover:bg-white hover:text-black border-2 border-black text-white px-4 py-2 rounded">
                 New Conversation
             </a>
         </div>
@@ -23,14 +23,19 @@
                                     </div>
                                     <div class="flex-1 min-w-0">
                                         <div class="flex justify-between items-start">
-                                            <div>
+                                            <div class="flex items-center gap-2">
                                                 <p class="text-lg font-semibold text-black">{{ $conv['partner']->name }}</p>
-                                                <p class="text-sm text-gray-600">{{ ucfirst($conv['partner']->role) }}</p>
+                                                @if($conv['unread_count'] > 0)
+                                                    <span class="bg-black text-white text-xs font-bold px-2 py-1 rounded-full">
+                                                        {{ $conv['unread_count'] }}
+                                                    </span>
+                                                @endif
                                             </div>
                                             <span class="text-xs text-gray-500">
                                                 {{ $conv['last_message']->created_at->diffForHumans() }}
                                             </span>
                                         </div>
+                                        <p class="text-sm text-gray-600 mt-1">{{ ucfirst($conv['partner']->role) }}</p>
                                         <p class="text-sm text-gray-700 mt-2 truncate">
                                             {{ Str::limit($conv['last_message']->message_text, 80) }}
                                         </p>
@@ -46,7 +51,7 @@
                         </svg>
                         <h3 class="mt-4 text-lg font-semibold text-black">No conversations yet</h3>
                         <p class="mt-2 text-sm text-gray-600">Start a new conversation to get started.</p>
-                        <a href="{{ route('messages.new') }}" class="mt-4 inline-block bg-black hover:bg-white hover:text-black border-2 border-black text-white px-6 py-2 rounded">
+                        <a href="{{ route('messages.create') }}" class="mt-4 inline-block bg-black hover:bg-white hover:text-black border-2 border-black text-white px-6 py-2 rounded">
                             New Conversation
                         </a>
                     </div>

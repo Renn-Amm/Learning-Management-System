@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\Lesson;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class LessonController extends Controller
 {
+    use AuthorizesRequests;
     public function index(Course $course)
     {
         $course->load('lessons');
@@ -17,23 +19,22 @@ class LessonController extends Controller
 
     public function create(Course $course)
     {
-        if ($course->teacher_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
-        }
+        // Authorization: Only course owner can create lessons
+        $this->authorize('create', [Lesson::class, $course]);
 
         return view('lessons.create', compact('course'));
     }
 
     public function store(Request $request, Course $course)
     {
-        if ($course->teacher_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
-        }
+        // Authorization: Only course owner can add lessons
+        $this->authorize('create', [Lesson::class, $course]);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'attachment' => 'nullable|file|mimes:jpg,jpeg,png,gif,pdf,doc,docx|max:10240',
+            'attachment_name' => 'nullable|string|max:255',
             'order_number' => 'required|integer|min:1',
             'duration' => 'required|integer|min:1',
         ]);
@@ -56,14 +57,18 @@ class LessonController extends Controller
         return redirect()->route('courses.show', $course)->with('success', 'Lesson created successfully.');
     }
 
+    /**
+     * Display a lesson with authorization check.
+     * Students can view if enrolled, teachers if they own the course.
+     */
     public function show(Lesson $lesson)
     {
+        // Authorization: Check if user can view this lesson
+        $this->authorize('view', $lesson);
+
+        // Eager load course and teacher to prevent N+1 queries
         $lesson->load('course.teacher');
         $course = $lesson->course;
-
-        if (!$course->isEnrolledBy(auth()->id()) && $course->teacher_id !== auth()->id()) {
-            abort(403, 'You must be enrolled in this course to view lessons.');
-        }
 
         // Check if student has completed this lesson
         $isCompleted = false;
@@ -79,17 +84,16 @@ class LessonController extends Controller
         return view('lessons.show', compact('lesson', 'course', 'isCompleted', 'enrollment'));
     }
 
+    /**
+     * Mark a lesson as done (non-CRUD action for students).
+     * Updates enrollment progress and viewed_lessons array.
+     */
     public function markDone(Request $request, Lesson $lesson)
     {
-        if (!auth()->user()->isStudent()) {
-            abort(403, 'Only students can mark lessons as done.');
-        }
+        // Authorization: Only enrolled students can mark lessons as done
+        $this->authorize('markDone', $lesson);
 
         $course = $lesson->course;
-        
-        if (!$course->isEnrolledBy(auth()->id())) {
-            abort(403, 'You must be enrolled in this course.');
-        }
 
         $enrollment = $course->enrollments()->where('user_id', auth()->id())->first();
         
@@ -120,9 +124,8 @@ class LessonController extends Controller
 
     public function edit(Lesson $lesson)
     {
-        if ($lesson->course->teacher_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
-        }
+        // Authorization: Only course owner can edit lessons
+        $this->authorize('update', $lesson);
 
         $course = $lesson->course;
         return view('lessons.edit', compact('lesson', 'course'));
@@ -130,14 +133,14 @@ class LessonController extends Controller
 
     public function update(Request $request, Lesson $lesson)
     {
-        if ($lesson->course->teacher_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
-        }
+        // Authorization: Only course owner can update lessons
+        $this->authorize('update', $lesson);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'attachment' => 'nullable|file|mimes:jpg,jpeg,png,gif,pdf,doc,docx|max:10240',
+            'attachment_name' => 'nullable|string|max:255',
             'order_number' => 'required|integer|min:1',
             'duration' => 'required|integer|min:1',
         ]);
@@ -168,13 +171,12 @@ class LessonController extends Controller
 
     public function destroy(Lesson $lesson)
     {
-        if ($lesson->course->teacher_id !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
-        }
+        // Authorization: Only course owner can delete lessons
+        $this->authorize('delete', $lesson);
 
         $course = $lesson->course;
         
-        // Delete attachment file if exists
+        // Delete attachment file if exists (private file handling)
         if ($lesson->attachment) {
             Storage::disk('private')->delete($lesson->attachment);
         }
