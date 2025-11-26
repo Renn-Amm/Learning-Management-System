@@ -49,10 +49,3 @@ Password: password
 ### Student
 Email: student1@example.com  
 Password: password
-
-
-Update `.env`:
-```env
-APP_ENV=production
-APP_DEBUG=false
-```
