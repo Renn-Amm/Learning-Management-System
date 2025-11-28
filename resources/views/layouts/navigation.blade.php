@@ -4,7 +4,7 @@
             <div class="flex">
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}" class="text-xl font-bold text-black">
-                        Mini LMS
+                        EduHub LMS
                     </a>
                 </div>
 
@@ -19,7 +19,7 @@
                         <span class="flex items-center">
                             Messages
                             @if($unreadMessagesCount > 0)
-                                <span class="ml-2 bg-black text-white text-xs font-bold px-2 py-1 rounded-full">
+                                <span class="ml-2 bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full">
                                     {{ $unreadMessagesCount }}
                                 </span>
                             @endif

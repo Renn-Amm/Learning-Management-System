@@ -26,7 +26,7 @@
                                             <div class="flex items-center gap-2">
                                                 <p class="text-lg font-semibold text-black">{{ $conv['partner']->name }}</p>
                                                 @if($conv['unread_count'] > 0)
-                                                    <span class="bg-black text-white text-xs font-bold px-2 py-1 rounded-full">
+                                                    <span class="bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full">
                                                         {{ $conv['unread_count'] }}
                                                     </span>
                                                 @endif

@@ -2,38 +2,38 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\NewMessageReceived;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class MessageController extends Controller
 {
     use AuthorizesRequests;
-    /**
-     * Display a listing of conversations.
-     * Eager load sender and recipient to prevent N+1 queries.
-     */
+    
     public function index()
     {
         $userId = auth()->id();
         
-        // Get all messages involving this user with eager loading
-        $messages = Message::where('from_id', $userId)
-            ->orWhere('to_id', $userId)
+        // Get all messages involving this user with eager loading (excluding hidden)
+        $messages = Message::where(function($q) use ($userId) {
+                $q->where('from_id', $userId)
+                  ->orWhere('to_id', $userId);
+            })
+            ->visibleFor($userId) // Only show messages not hidden by current user
             ->with(['sender', 'recipient']) // Eager load to prevent N+1
             ->orderBy('created_at', 'desc')
             ->get();
         
-        // Group by conversation partner
         $conversations = collect();
         $seenPartners = [];
         
         foreach ($messages as $message) {
             $partnerId = $message->from_id === $userId ? $message->to_id : $message->from_id;
             
-            // Skip if we already have this partner
             if (in_array($partnerId, $seenPartners)) {
                 continue;
             }
@@ -41,7 +41,6 @@ class MessageController extends Controller
             $seenPartners[] = $partnerId;
             $partner = $message->from_id === $userId ? $message->recipient : $message->sender;
             
-            // Count unread messages from this partner
             $unreadCount = Message::where('from_id', $partnerId)
                 ->where('to_id', $userId)
                 ->unread()
@@ -59,26 +58,22 @@ class MessageController extends Controller
         return view('messages.index', compact('conversations'));
     }
 
-    /**
-     * Display conversation with a specific user.
-     * Authorization: User can only view their own conversations.
-     */
     public function conversation(User $user)
     {
-        // Authorization: Check if user can view conversation
         $this->authorize('viewConversation', [Message::class, $user]);
 
         $currentUserId = auth()->id();
         $partnerId = $user->id;
         
-        // Get all messages between these two users
+        // Get all messages between these two users (excluding hidden)
         $messages = Message::where(function ($q) use ($currentUserId, $partnerId) {
             $q->where('from_id', $currentUserId)->where('to_id', $partnerId);
         })->orWhere(function ($q) use ($currentUserId, $partnerId) {
             $q->where('from_id', $partnerId)->where('to_id', $currentUserId);
-        })->orderBy('created_at', 'asc')->get();
+        })
+        ->visibleFor($currentUserId) // Only show messages not hidden by current user
+        ->orderBy('created_at', 'asc')->get();
 
-        // Mark all messages from partner as read
         Message::where('from_id', $partnerId)
             ->where('to_id', $currentUserId)
             ->unread()
@@ -87,12 +82,8 @@ class MessageController extends Controller
         return view('messages.conversation', compact('user', 'messages'));
     }
 
-    /**
-     * Show a single message (for CRUD completeness).
-     */
     public function show(Message $message)
     {
-        // Authorization: Only sender or recipient can view
         $this->authorize('view', $message);
 
         return view('messages.show', compact('message'));
@@ -104,13 +95,28 @@ class MessageController extends Controller
             'message_text' => 'required|string',
         ]);
 
-        Message::create([
+        $message = Message::create([
             'from_id' => auth()->id(),
             'to_id' => $user->id,
             'title' => 'Conversation',
             'subject' => 'Message',
             'message_text' => $validated['message_text'],
         ]);
+
+        try {
+            $message->load(['sender', 'recipient']);
+            Mail::to($user->email)->send(new NewMessageReceived($message));
+            \Log::info('Message email sent', [
+                'recipient' => $user->email,
+                'sender' => auth()->user()->name,
+                'message_preview' => substr($validated['message_text'], 0, 50)
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send message email', [
+                'error' => $e->getMessage(),
+                'recipient' => $user->email
+            ]);
+        }
 
         return redirect()->route('messages.conversation', $user)->with('success', 'Message sent.');
     }
@@ -128,13 +134,8 @@ class MessageController extends Controller
         return view('messages.new', compact('users'));
     }
 
-    /**
-     * Show the form for editing a message (CRUD completeness).
-     * Only the sender can edit their own messages.
-     */
     public function edit(Message $message)
     {
-        // Authorization: Only sender can edit
         $this->authorize('view', $message);
 
         if ($message->from_id !== auth()->id()) {
@@ -144,13 +145,8 @@ class MessageController extends Controller
         return view('messages.edit', compact('message'));
     }
 
-    /**
-     * Update a message (CRUD completeness).
-     * Only the sender can update their own messages.
-     */
     public function update(Request $request, Message $message)
     {
-        // Authorization: Only sender can update
         $this->authorize('view', $message);
 
         if ($message->from_id !== auth()->id()) {
@@ -167,19 +163,40 @@ class MessageController extends Controller
             ->with('success', 'Message updated successfully.');
     }
 
-    /**
-     * Delete a message (CRUD completeness).
-     * Only the sender can delete their own messages.
-     */
     public function destroy(Message $message)
     {
-        // Authorization: Only sender can delete
         $this->authorize('delete', $message);
 
-        $recipientId = $message->to_id;
+        $recipientId = $message->to_id === auth()->id() ? $message->from_id : $message->to_id;
+        $recipient = User::find($recipientId);
+        
         $message->delete();
 
-        return redirect()->route('messages.conversation', $recipientId)
+        return redirect()->route('messages.conversation', $recipient)
             ->with('success', 'Message deleted successfully.');
+    }
+
+    /**
+     * Hide entire conversation with a user (personal delete).
+     * Only hides messages for current user, other user still sees them.
+     */
+    public function deleteConversation(User $user)
+    {
+        $currentUserId = auth()->id();
+        $partnerId = $user->id;
+
+        // Hide all messages between these two users (for current user only)
+        $messages = Message::where(function ($q) use ($currentUserId, $partnerId) {
+            $q->where('from_id', $currentUserId)->where('to_id', $partnerId);
+        })->orWhere(function ($q) use ($currentUserId, $partnerId) {
+            $q->where('from_id', $partnerId)->where('to_id', $currentUserId);
+        })->get();
+
+        foreach ($messages as $message) {
+            $message->hideFor($currentUserId);
+        }
+
+        return redirect()->route('messages.index')
+            ->with('success', 'Conversation hidden successfully.');
     }
 }

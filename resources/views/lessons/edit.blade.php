@@ -30,23 +30,33 @@
                             <x-input-error class="mt-2" :messages="$errors->get('content')" />
                         </div>
 
-                        <div class="mb-4">
-                            <x-input-label for="attachment" value="Attachment (Optional)" />
-                            @if($lesson->attachment)
-                                <p class="text-sm text-black mb-2">
-                                    Current: <a href="{{ asset('storage/' . $lesson->attachment) }}" target="_blank" class="text-black underline">{{ $lesson->attachment_name ?? basename($lesson->attachment) }}</a>
-                                </p>
-                            @endif
-                            <input id="attachment" name="attachment" type="file" accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx" class="mt-1 block w-full border border-black rounded-md p-2" />
-                            <p class="text-xs text-black mt-1">Accepted: Images (JPG, PNG, GIF), PDF, Word (DOC, DOCX) - Max 10MB</p>
-                            <x-input-error class="mt-2" :messages="$errors->get('attachment')" />
-                        </div>
+                        <div x-data="{ hasFile: {{ $lesson->attachment ? 'true' : 'false' }}, newFileSelected: false }">
+                            <div class="mb-4">
+                                <x-input-label for="attachment" value="Attachment (Optional)" />
+                                @if($lesson->attachment)
+                                    <p class="text-sm text-black mb-2">
+                                        Current: <a href="{{ route('file.download', basename($lesson->attachment)) }}" class="text-black underline">{{ $lesson->attachment_name ?? basename($lesson->attachment) }}</a>
+                                    </p>
+                                @endif
+                                <input 
+                                    id="attachment" 
+                                    name="attachment" 
+                                    type="file" 
+                                    accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx" 
+                                    class="mt-1 block w-full border border-black rounded-md p-2"
+                                    x-on:change="newFileSelected = $event.target.files.length > 0; hasFile = true"
+                                />
+                                <p class="text-xs text-black mt-1">Accepted: Images (JPG, PNG, GIF), PDF, Word (DOC, DOCX) - Max 10MB</p>
+                                <p class="text-xs text-gray-600 mt-1" x-show="newFileSelected">New file selected - will replace current attachment</p>
+                                <x-input-error class="mt-2" :messages="$errors->get('attachment')" />
+                            </div>
 
-                        <div class="mb-4">
-                            <x-input-label for="attachment_name" value="File Display Name (optional)" />
-                            <x-text-input id="attachment_name" name="attachment_name" type="text" placeholder="e.g., Lecture Notes, Assignment 1" class="mt-1 block w-full" :value="old('attachment_name', $lesson->attachment_name)" />
-                            <p class="text-xs text-black mt-1">Give your file a friendly name students will see</p>
-                            <x-input-error class="mt-2" :messages="$errors->get('attachment_name')" />
+                            <div class="mb-4" x-show="hasFile" x-transition>
+                                <x-input-label for="attachment_name" value="File Display Name (optional)" />
+                                <x-text-input id="attachment_name" name="attachment_name" type="text" placeholder="e.g., Lecture Notes, Assignment 1" class="mt-1 block w-full" :value="old('attachment_name', $lesson->attachment_name)" />
+                                <p class="text-xs text-black mt-1">Give your file a friendly name students will see</p>
+                                <x-input-error class="mt-2" :messages="$errors->get('attachment_name')" />
+                            </div>
                         </div>
 
                         <div class="mb-4">

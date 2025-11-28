@@ -51,12 +51,10 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
-        // Delete old profile image if exists
         if ($user->profile_image) {
             Storage::disk('public')->delete($user->profile_image);
         }
 
-        // Store new profile image
         $path = $request->file('profile_image')->store('profile-images', 'public');
         
         $user->update(['profile_image' => $path]);
@@ -84,20 +82,16 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
-        // Delete profile image if exists
         if ($user->profile_image) {
             Storage::disk('public')->delete($user->profile_image);
         }
 
-        // If teacher: Delete all courses and their related data
         if ($user->isTeacher()) {
             foreach ($user->courses as $course) {
-                // Delete course thumbnail
                 if ($course->thumbnail) {
                     Storage::disk('public')->delete($course->thumbnail);
                 }
                 
-                // Delete lessons and their attachments
                 foreach ($course->lessons as $lesson) {
                     if ($lesson->attachment) {
                         Storage::disk('private')->delete($lesson->attachment);
@@ -105,18 +99,12 @@ class ProfileController extends Controller
                     $lesson->delete();
                 }
                 
-                // Delete course (this will cascade delete enrollments due to FK)
                 $course->delete();
             }
         }
 
-        // If student: Delete all enrollments (handled by FK cascade)
-        // Delete all sent and received messages (handled by FK cascade)
-        // Delete categories created by user (handled by FK cascade)
-
         Auth::logout();
 
-        // Delete user account
         $user->delete();
 
         $request->session()->invalidate();

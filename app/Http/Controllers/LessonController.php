@@ -19,7 +19,6 @@ class LessonController extends Controller
 
     public function create(Course $course)
     {
-        // Authorization: Only course owner can create lessons
         $this->authorize('create', [Lesson::class, $course]);
 
         return view('lessons.create', compact('course'));
@@ -27,7 +26,6 @@ class LessonController extends Controller
 
     public function store(Request $request, Course $course)
     {
-        // Authorization: Only course owner can add lessons
         $this->authorize('create', [Lesson::class, $course]);
 
         $validated = $request->validate([
@@ -39,13 +37,11 @@ class LessonController extends Controller
             'duration' => 'required|integer|min:1',
         ]);
 
-        // Check for duplicate order number in this course
         $existingLesson = $course->lessons()->where('order_number', $validated['order_number'])->first();
         if ($existingLesson) {
             return redirect()->back()->withErrors(['order_number' => 'This order number is already used in this course.'])->withInput();
         }
 
-        // Handle file upload
         if ($request->hasFile('attachment')) {
             $validated['attachment'] = $request->file('attachment')->store('lesson-attachments', 'private');
         }
@@ -57,20 +53,13 @@ class LessonController extends Controller
         return redirect()->route('courses.show', $course)->with('success', 'Lesson created successfully.');
     }
 
-    /**
-     * Display a lesson with authorization check.
-     * Students can view if enrolled, teachers if they own the course.
-     */
     public function show(Lesson $lesson)
     {
-        // Authorization: Check if user can view this lesson
         $this->authorize('view', $lesson);
 
-        // Eager load course and teacher to prevent N+1 queries
         $lesson->load('course.teacher');
         $course = $lesson->course;
 
-        // Check if student has completed this lesson
         $isCompleted = false;
         $enrollment = null;
         if (auth()->user()->isStudent() && $course->isEnrolledBy(auth()->id())) {
@@ -84,13 +73,9 @@ class LessonController extends Controller
         return view('lessons.show', compact('lesson', 'course', 'isCompleted', 'enrollment'));
     }
 
-    /**
-     * Mark a lesson as done (non-CRUD action for students).
-     * Updates enrollment progress and viewed_lessons array.
-     */
+    // Mark lesson complete and update progress
     public function markDone(Request $request, Lesson $lesson)
     {
-        // Authorization: Only enrolled students can mark lessons as done
         $this->authorize('markDone', $lesson);
 
         $course = $lesson->course;
@@ -124,7 +109,6 @@ class LessonController extends Controller
 
     public function edit(Lesson $lesson)
     {
-        // Authorization: Only course owner can edit lessons
         $this->authorize('update', $lesson);
 
         $course = $lesson->course;
@@ -133,7 +117,6 @@ class LessonController extends Controller
 
     public function update(Request $request, Lesson $lesson)
     {
-        // Authorization: Only course owner can update lessons
         $this->authorize('update', $lesson);
 
         $validated = $request->validate([
@@ -145,7 +128,6 @@ class LessonController extends Controller
             'duration' => 'required|integer|min:1',
         ]);
 
-        // Check for duplicate order number in this course (excluding current lesson)
         $existingLesson = $lesson->course->lessons()
             ->where('order_number', $validated['order_number'])
             ->where('id', '!=', $lesson->id)
@@ -155,9 +137,7 @@ class LessonController extends Controller
             return redirect()->back()->withErrors(['order_number' => 'This order number is already used in this course.'])->withInput();
         }
 
-        // Handle file upload
         if ($request->hasFile('attachment')) {
-            // Delete old file if exists
             if ($lesson->attachment) {
                 Storage::disk('private')->delete($lesson->attachment);
             }
@@ -171,12 +151,10 @@ class LessonController extends Controller
 
     public function destroy(Lesson $lesson)
     {
-        // Authorization: Only course owner can delete lessons
         $this->authorize('delete', $lesson);
 
         $course = $lesson->course;
         
-        // Delete attachment file if exists (private file handling)
         if ($lesson->attachment) {
             Storage::disk('private')->delete($lesson->attachment);
         }

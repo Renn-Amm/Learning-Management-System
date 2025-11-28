@@ -29,10 +29,20 @@ class EnrollmentController extends Controller
             'is_completed' => false,
         ]);
 
-        // Send email notification to the teacher's login email
-        // Uses the email from users table that teacher uses to login
-        $course->load('teacher');
-        Mail::to($course->teacher->email)->send(new StudentJoinedCourse($user, $course));
+        try {
+            $course->load('teacher');
+            Mail::to($course->teacher->email)->send(new StudentJoinedCourse($user, $course));
+            \Log::info('Enrollment email sent', [
+                'teacher' => $course->teacher->email,
+                'student' => $user->name,
+                'course' => $course->title
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Failed to send enrollment email', [
+                'error' => $e->getMessage(),
+                'teacher' => $course->teacher->email ?? 'N/A'
+            ]);
+        }
 
         return redirect()->route('courses.show', $course)->with('success', 'Successfully enrolled in the course.');
     }

@@ -59,20 +59,27 @@
             const studentBtn = document.getElementById('studentBtn');
             const teacherBtn = document.getElementById('teacherBtn');
             const roleInput = document.getElementById('roleInput');
-            const roleText = document.getElementById('roleText');
             const roleInfo = document.getElementById('roleInfo');
 
             if (type === 'student') {
+                // Update button styles
                 studentBtn.className = 'px-4 py-3 border-2 border-black rounded font-semibold bg-black text-white';
                 teacherBtn.className = 'px-4 py-3 border-2 border-black rounded font-semibold bg-white text-black hover:bg-black hover:text-white';
+                
+                // Update hidden input
                 roleInput.value = 'student';
-                roleText.textContent = 'Students';
+                
+                // Update info text
                 roleInfo.innerHTML = '<p class="text-black"><strong>Students</strong> can enroll in courses and track their progress.</p>';
-            } else {
+            } else if (type === 'teacher') {
+                // Update button styles
                 teacherBtn.className = 'px-4 py-3 border-2 border-black rounded font-semibold bg-black text-white';
                 studentBtn.className = 'px-4 py-3 border-2 border-black rounded font-semibold bg-white text-black hover:bg-black hover:text-white';
+                
+                // Update hidden input
                 roleInput.value = 'teacher';
-                roleText.textContent = 'Teachers';
+                
+                // Update info text
                 roleInfo.innerHTML = '<p class="text-black"><strong>Teachers</strong> can create courses, add lessons, and view student progress.</p>';
             }
         }

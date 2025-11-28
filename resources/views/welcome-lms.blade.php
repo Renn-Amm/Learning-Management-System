@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Mini LMS - Learning Management System</title>
+    <title>EduHub LMS - Professional Learning Management System</title>
     
     <!-- Favicon with cache busting -->
     <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}?v={{ filemtime(public_path('favicon.ico')) }}">
@@ -21,7 +21,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
                     <div class="flex items-center">
-                        <h1 class="text-2xl font-bold text-black">Mini LMS</h1>
+                        <h1 class="text-2xl font-bold text-black">EduHub LMS</h1>
                     </div>
                     <div class="flex items-center gap-4">
                         @auth
@@ -40,11 +40,11 @@
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
                     <div class="text-center">
                         <h1 class="text-5xl font-bold text-black mb-6">
-                            Welcome to Mini LMS
+                            Welcome to EduHub LMS
                         </h1>
                         <p class="text-xl text-black mb-8 max-w-2xl mx-auto">
-                            A simple and powerful Learning Management System built with Laravel and Breeze.
-                            Start your learning journey today.
+                            Empowering educators and learners with a modern, intuitive platform.
+                            Transform your teaching and learning experience today.
                         </p>
                         <div class="flex justify-center gap-4">
                             @auth
@@ -102,7 +102,7 @@
         <footer class="bg-white border-t border-black mt-16">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <p class="text-center text-black">
-                    Mini LMS - Built with Laravel 11 + Breeze
+                    &copy; {{ date('Y') }} EduHub LMS. All rights reserved.
                 </p>
             </div>
         </footer>

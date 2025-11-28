@@ -33,7 +33,24 @@ class LoginRequest extends FormRequest
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
-            ]);
+            ])->redirectTo(route('login') . '?role=' . $this->input('expected_role', 'student'));
+        }
+
+        // Check if user role matches expected role
+        $user = Auth::user();
+        $expectedRole = $this->input('expected_role', 'student');
+        
+        if ($user->role !== $expectedRole) {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+            
+            $message = $user->role === 'teacher' 
+                ? 'This is a teacher account. Please use the "Login as Teacher" option.'
+                : 'This is a student account. Please use the "Login as Student" option.';
+            
+            throw ValidationException::withMessages([
+                'email' => $message,
+            ])->redirectTo(route('login') . '?role=' . $expectedRole);
         }
 
         RateLimiter::clear($this->throttleKey());

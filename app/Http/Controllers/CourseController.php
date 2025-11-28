@@ -16,42 +16,35 @@ class CourseController extends Controller
     {
         $categories = Category::all();
         
-        // Eager load relationships to prevent N+1 queries
         $query = Course::with(['teacher', 'category', 'skills'])
             ->withCount('lessons', 'enrollments');
         
-        // Show only published courses to students, all courses to teachers
+        // Students see only published courses
         if (auth()->user()->isStudent()) {
             $query->where('is_published', true);
         }
         
-        // Search functionality
         if ($request->filled('search')) {
             $searchTerm = $request->search;
             
             $query->where(function ($q) use ($searchTerm) {
-                // Search in course title and description
                 $q->where('title', 'LIKE', "%{$searchTerm}%")
                   ->orWhere('description', 'LIKE', "%{$searchTerm}%")
-                  // Search in category name
                   ->orWhereHas('category', function ($q) use ($searchTerm) {
                       $q->where('name', 'LIKE', "%{$searchTerm}%");
                   })
-                  // Search in skills
                   ->orWhereHas('skills', function ($q) use ($searchTerm) {
                       $q->where('name', 'LIKE', "%{$searchTerm}%");
                   });
             });
         }
         
-        // Category filter
         if ($request->filled('category')) {
             $query->where('category_id', $request->category);
         }
         
         $courses = $query->latest()->paginate(12)->withQueryString();
 
-        // Add enrollment status for students
         if (auth()->user()->isStudent()) {
             $enrolledCourseIds = auth()->user()->enrolledCourses()->pluck('courses.id')->toArray();
             $courses->getCollection()->transform(function ($course) use ($enrolledCourseIds) {
@@ -65,7 +58,6 @@ class CourseController extends Controller
 
     public function create()
     {
-        // Authorization: Only teachers can create courses
         $this->authorize('create', Course::class);
 
         $categories = Category::all();
@@ -99,18 +91,15 @@ class CourseController extends Controller
         unset($validated['skills']);
         $course = Course::create($validated);
 
-        // Handle comma-separated skills
         if ($request->filled('skills')) {
             $skillNames = array_map('trim', explode(',', $request->skills));
             $skillIds = [];
             
-            // Get category color for skills
             $category = Category::find($validated['category_id']);
             $colorCode = $category->color_code;
             
             foreach ($skillNames as $skillName) {
                 if (!empty($skillName)) {
-                    // Create skill with category's color code
                     $skill = Skill::firstOrCreate(
                         ['name' => $skillName],
                         ['color_code' => $colorCode]
@@ -127,7 +116,6 @@ class CourseController extends Controller
 
     public function show(Course $course)
     {
-        // Eager load relationships to prevent N+1 queries
         $course->load(['teacher', 'category', 'lessons', 'skills']);
         $isEnrolled = auth()->check() && $course->isEnrolledBy(auth()->id());
         $enrollment = null;
@@ -141,7 +129,6 @@ class CourseController extends Controller
 
     public function edit(Course $course)
     {
-        // Authorization: Only course owner can edit
         $this->authorize('update', $course);
 
         $categories = Category::all();
@@ -151,7 +138,6 @@ class CourseController extends Controller
 
     public function update(Request $request, Course $course)
     {
-        // Authorization: Only course owner can update
         $this->authorize('update', $course);
 
         $validated = $request->validate([
@@ -173,18 +159,15 @@ class CourseController extends Controller
         unset($validated['skills']);
         $course->update($validated);
 
-        // Handle comma-separated skills
         if ($request->filled('skills')) {
             $skillNames = array_map('trim', explode(',', $request->skills));
             $skillIds = [];
             
-            // Get category color for skills
             $category = Category::find($validated['category_id']);
             $colorCode = $category->color_code;
             
             foreach ($skillNames as $skillName) {
                 if (!empty($skillName)) {
-                    // Create skill with category's color code
                     $skill = Skill::firstOrCreate(
                         ['name' => $skillName],
                         ['color_code' => $colorCode]
@@ -203,7 +186,6 @@ class CourseController extends Controller
 
     public function destroy(Course $course)
     {
-        // Authorization: Only course owner can delete
         $this->authorize('delete', $course);
 
         if ($course->thumbnail) {
@@ -215,14 +197,9 @@ class CourseController extends Controller
         return redirect()->route('dashboard')->with('success', 'Course deleted successfully.');
     }
 
-    /**
-     * NON-CRUD ACTION: Publish a course
-     * Makes the course visible to students for enrollment.
-     * Only the course owner (teacher) can publish their course.
-     */
+    // Publish course - makes visible to students
     public function publish(Course $course)
     {
-        // Authorization: Only course owner can publish
         $this->authorize('publish', $course);
 
         if ($course->is_published) {
@@ -234,14 +211,9 @@ class CourseController extends Controller
         return redirect()->back()->with('success', 'Course published successfully. Students can now enroll.');
     }
 
-    /**
-     * NON-CRUD ACTION: Unpublish a course
-     * Hides the course from students but keeps existing enrollments.
-     * Only the course owner (teacher) can unpublish their course.
-     */
+    // Unpublish course - hides from students, keeps existing enrollments
     public function unpublish(Course $course)
     {
-        // Authorization: Only course owner can unpublish
         $this->authorize('publish', $course);
 
         if (!$course->is_published) {

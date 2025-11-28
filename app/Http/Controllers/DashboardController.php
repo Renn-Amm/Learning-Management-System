@@ -20,21 +20,12 @@ class DashboardController extends Controller
         return $this->studentDashboard();
     }
 
-    /**
-     * Teacher dashboard with eager loading to prevent N+1 queries.
-     * Loads courses → enrollments → users all at once.
-     */
     private function teacherDashboard()
     {
         $teacherId = auth()->id();
         
-        // Eager load all necessary relationships to prevent N+1 queries
         $courses = auth()->user()->courses()
-            ->with([
-                'category',
-                'lessons',
-                'enrollments' // Eager load enrollments for progress summary
-            ])
+            ->with(['category', 'lessons', 'enrollments'])
             ->withCount('enrollments', 'lessons')
             ->get();
         
@@ -45,13 +36,11 @@ class DashboardController extends Controller
         
         $totalLessons = $courses->sum('lessons_count');
         
-        // Recent Student Activity (enrollments and progress updates)
         $courseIds = $courses->pluck('id');
         $recentActivity = collect();
         
-        // Get recent enrollments with eager loaded user and course relationships
         $recentEnrollments = Enrollment::whereIn('course_id', $courseIds)
-            ->with(['user', 'course']) // Eager load to prevent N+1
+            ->with(['user', 'course'])
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get();
@@ -72,13 +61,11 @@ class DashboardController extends Controller
             }
         }
         
-        // Sort by timestamp and limit to 10
         $recentActivity = $recentActivity->sortByDesc('timestamp')->take(10)->values();
         
-        // Student Progress Summary - use already loaded enrollments (no additional queries)
         $progressSummary = collect();
         foreach ($courses as $course) {
-            $enrollments = $course->enrollments; // Already eager loaded
+            $enrollments = $course->enrollments;
             $enrolledCount = $enrollments->count();
             
             if ($enrolledCount > 0) {
@@ -106,39 +93,29 @@ class DashboardController extends Controller
         return view('dashboard.teacher', compact('courses', 'totalStudents', 'totalLessons', 'recentActivity', 'progressSummary'));
     }
 
-    /**
-     * Student dashboard with eager loading to prevent N+1 queries.
-     * Loads courses → teacher, category, lessons, enrollments all at once.
-     */
     private function studentDashboard()
     {
-        // Eager load all relationships including the pivot (enrollment) data
         $enrolledCourses = auth()->user()->enrolledCourses()
             ->with(['teacher', 'category', 'lessons'])
             ->get();
         
-        // Get all enrollments for this user in one query to avoid N+1
         $userEnrollments = Enrollment::where('user_id', auth()->id())
             ->whereIn('course_id', $enrolledCourses->pluck('id'))
             ->get()
             ->keyBy('course_id');
         
-        // Get enrollment data with progress - no additional queries needed
         $enrolledCoursesWithProgress = $enrolledCourses->map(function ($course) use ($userEnrollments) {
             $enrollment = $userEnrollments->get($course->id);
             $course->progress = $enrollment ? $enrollment->progress : 0;
             $course->enrollment_id = $enrollment ? $enrollment->id : null;
             
-            // Find next unfinished lesson using viewed_lessons from enrollment
             $viewedLessonIds = $enrollment && $enrollment->viewed_lessons ? $enrollment->viewed_lessons : [];
             
-            // Use already loaded lessons collection (no query)
             $nextLesson = $course->lessons
                 ->whereNotIn('id', $viewedLessonIds)
                 ->sortBy('created_at')
                 ->first();
             
-            // If all lessons viewed, get first lesson
             if (!$nextLesson && $course->lessons->count() > 0) {
                 $nextLesson = $course->lessons->sortBy('created_at')->first();
             }
@@ -147,7 +124,6 @@ class DashboardController extends Controller
             return $course;
         });
         
-        // Latest courses - show NEWEST courses created (overall, not per category)
         $latestCourses = Course::where('is_published', true)
             ->whereNotIn('id', function ($query) {
                 $query->select('course_id')
@@ -159,14 +135,12 @@ class DashboardController extends Controller
             ->limit(6)
             ->get();
         
-        // Group by category for display
         $suggestedCourses = $latestCourses->groupBy('category_id')->map(function ($courses, $categoryId) {
             $category = Category::find($categoryId);
             $category->courses = $courses;
             return $category;
         })->values();
         
-        // Recent lessons viewed - use already loaded lessons and enrollments
         $recentLessons = collect();
         foreach ($enrolledCoursesWithProgress as $course) {
             $enrollment = $userEnrollments->get($course->id);
@@ -182,7 +156,6 @@ class DashboardController extends Controller
         }
         $recentLessons = $recentLessons->take(5);
         
-        // Achievements - use already fetched data
         $completedCoursesCount = $userEnrollments->where('progress', '>=', 100)->count();
         
         $totalLessonsViewed = 0;

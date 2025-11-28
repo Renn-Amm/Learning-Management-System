@@ -18,7 +18,7 @@ Route::get('/', function () {
         ->header('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
 })->name('welcome');
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'preventBackHistory'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -50,15 +50,11 @@ Route::middleware(['auth'])->group(function () {
         Route::resource('skills', SkillController::class);
     });
 
-    // Messages (accessible by all authenticated users) - Full CRUD
+    // Messages (accessible by all authenticated users)
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
-    Route::get('/messages/new', [MessageController::class, 'create'])->name('messages.create');
-    Route::get('/messages/conversation/{user}', [MessageController::class, 'conversation'])->name('messages.conversation');
+    Route::get('/messages/create', [MessageController::class, 'create'])->name('messages.create');
+    Route::get('/messages/{user}', [MessageController::class, 'conversation'])->name('messages.conversation');
     Route::post('/messages/{user}', [MessageController::class, 'store'])->name('messages.store');
-    Route::get('/messages/{message}', [MessageController::class, 'show'])->name('messages.show');
-    Route::get('/messages/{message}/edit', [MessageController::class, 'edit'])->name('messages.edit');
-    Route::put('/messages/{message}', [MessageController::class, 'update'])->name('messages.update');
-    Route::delete('/messages/{message}', [MessageController::class, 'destroy'])->name('messages.destroy');
 
     // Secure file downloads
     Route::get('/download/{file}', [FileController::class, 'download'])->name('file.download');

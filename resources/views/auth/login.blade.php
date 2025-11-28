@@ -13,18 +13,8 @@
 
     <form method="POST" action="{{ route('login') }}">
         @csrf
-
-        <div id="studentInfo" class="mb-6 p-4 bg-white border border-black rounded text-sm">
-            <p class="font-semibold text-black mb-2">Student Demo Account:</p>
-            <p class="text-black"><strong>Email:</strong> student1@example.com</p>
-            <p class="text-black"><strong>Password:</strong> password</p>
-        </div>
-
-        <div id="teacherInfo" class="mb-6 p-4 bg-white border border-black rounded text-sm hidden">
-            <p class="font-semibold text-black mb-2">Teacher Demo Account:</p>
-            <p class="text-black"><strong>Email:</strong> teacher@example.com</p>
-            <p class="text-black"><strong>Password:</strong> password</p>
-        </div>
+        
+        <input type="hidden" name="expected_role" id="expectedRoleInput" value="student">
 
         <div class="mb-4">
             <x-input-label for="email" :value="__('Email')" />
@@ -66,25 +56,37 @@
     </form>
 
     <script>
+        // Restore selected tab on page load (after validation error)
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const expectedRole = urlParams.get('role') || '{{ old("expected_role", "student") }}';
+            
+            if (expectedRole === 'teacher') {
+                setLoginType('teacher');
+            } else {
+                setLoginType('student');
+            }
+        });
+
         function setLoginType(type) {
             const studentBtn = document.getElementById('studentBtn');
             const teacherBtn = document.getElementById('teacherBtn');
-            const studentInfo = document.getElementById('studentInfo');
-            const teacherInfo = document.getElementById('teacherInfo');
-            const emailInput = document.getElementById('email');
+            const expectedRoleInput = document.getElementById('expectedRoleInput');
 
             if (type === 'student') {
+                // Update UI
                 studentBtn.className = 'px-4 py-3 border-2 border-black rounded font-semibold bg-black text-white';
                 teacherBtn.className = 'px-4 py-3 border-2 border-black rounded font-semibold bg-white text-black hover:bg-black hover:text-white';
-                studentInfo.classList.remove('hidden');
-                teacherInfo.classList.add('hidden');
-                emailInput.value = 'student1@example.com';
-            } else {
+                
+                // Set expected role
+                expectedRoleInput.value = 'student';
+            } else if (type === 'teacher') {
+                // Update UI
                 teacherBtn.className = 'px-4 py-3 border-2 border-black rounded font-semibold bg-black text-white';
                 studentBtn.className = 'px-4 py-3 border-2 border-black rounded font-semibold bg-white text-black hover:bg-black hover:text-white';
-                teacherInfo.classList.remove('hidden');
-                studentInfo.classList.add('hidden');
-                emailInput.value = 'teacher@example.com';
+                
+                // Set expected role
+                expectedRoleInput.value = 'teacher';
             }
         }
     </script>

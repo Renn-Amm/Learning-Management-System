@@ -10,16 +10,11 @@ use Illuminate\Support\Facades\Cache;
 class CategoryController extends Controller
 {
     use AuthorizesRequests;
-    /**
-     * Display a listing of categories with caching.
-     * Cache is cleared when categories are created, updated, or deleted.
-     */
+    
     public function index()
     {
-        // Authorization: Only teachers can view categories
         $this->authorize('viewAny', Category::class);
 
-        // Cache categories list for 60 minutes to reduce database queries
         $categories = Cache::remember('categories.index', 3600, function () {
             return Category::with('user')->withCount('courses')->get();
         });
@@ -29,7 +24,6 @@ class CategoryController extends Controller
 
     public function create()
     {
-        // Authorization: Only teachers can create categories
         $this->authorize('create', Category::class);
 
         return view('categories.create');
@@ -37,7 +31,6 @@ class CategoryController extends Controller
 
     public function store(Request $request)
     {
-        // Authorization: Only teachers can create categories
         $this->authorize('create', Category::class);
 
         $validated = $request->validate([
@@ -49,7 +42,6 @@ class CategoryController extends Controller
 
         Category::create($validated);
 
-        // Clear categories cache after creating new category
         Cache::forget('categories.index');
 
         return redirect()->route('categories.index')->with('success', 'Category created successfully.');
@@ -84,7 +76,6 @@ class CategoryController extends Controller
 
     public function edit(Category $category)
     {
-        // Authorization: Only category owner can edit
         $this->authorize('update', $category);
 
         return view('categories.edit', compact('category'));
@@ -92,7 +83,6 @@ class CategoryController extends Controller
 
     public function update(Request $request, Category $category)
     {
-        // Authorization: Only category owner can update
         $this->authorize('update', $category);
 
         $validated = $request->validate([
@@ -101,7 +91,6 @@ class CategoryController extends Controller
 
         $category->update($validated);
 
-        // Clear categories cache after updating
         Cache::forget('categories.index');
 
         return redirect()->route('categories.index')->with('success', 'Category updated successfully.');
@@ -109,7 +98,6 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        // Authorization: Only category owner can delete, and only if no courses
         $this->authorize('delete', $category);
 
         if ($category->courses()->count() > 0) {
@@ -118,7 +106,6 @@ class CategoryController extends Controller
 
         $category->delete();
 
-        // Clear categories cache after deleting
         Cache::forget('categories.index');
 
         return redirect()->route('categories.index')->with('success', 'Category deleted successfully.');
