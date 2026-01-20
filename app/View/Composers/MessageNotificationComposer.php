@@ -13,8 +13,10 @@ class MessageNotificationComposer
     public function compose(View $view): void
     {
         if (auth()->check()) {
-            $unreadMessagesCount = Message::where('to_id', auth()->id())
+            $userId = auth()->id();
+            $unreadMessagesCount = Message::where('to_id', $userId)
                 ->unread()
+                ->whereNull('deleted_by_receiver_at')
                 ->count();
             
             $view->with('unreadMessagesCount', $unreadMessagesCount);

@@ -14,11 +14,15 @@ class Message extends Model
         'message_text',
         'read_at',
         'hidden_for_users',
+        'deleted_by_sender_at',
+        'deleted_by_receiver_at',
     ];
 
     protected $casts = [
         'read_at' => 'datetime',
         'hidden_for_users' => 'array',
+        'deleted_by_sender_at' => 'datetime',
+        'deleted_by_receiver_at' => 'datetime',
     ];
 
     public function sender()
@@ -73,6 +77,53 @@ class Message extends Model
         return $query->where(function($q) use ($userId) {
             $q->whereNull('hidden_for_users')
               ->orWhereRaw('(hidden_for_users IS NOT NULL AND hidden_for_users NOT LIKE ?)', ['%"' . $userId . '"%']);
+        })
+        // Per-user soft delete: hide if sender deleted and user is sender
+        ->where(function($q) use ($userId) {
+            $q->where(function($inner) use ($userId) {
+                $inner->where('from_id', $userId)->whereNull('deleted_by_sender_at');
+            })->orWhere(function($inner) use ($userId) {
+                $inner->where('to_id', $userId)->whereNull('deleted_by_receiver_at');
+            })->orWhere(function($inner) use ($userId) {
+                $inner->where('from_id', '!=', $userId)->where('to_id', '!=', $userId);
+            });
         });
+    }
+
+    /**
+     * Check if message is soft deleted for a specific user.
+     * Sender checks deleted_by_sender_at, receiver checks deleted_by_receiver_at.
+     */
+    public function isDeletedFor($userId)
+    {
+        if ($this->from_id === $userId) {
+            return !is_null($this->deleted_by_sender_at);
+        }
+        if ($this->to_id === $userId) {
+            return !is_null($this->deleted_by_receiver_at);
+        }
+        return false;
+    }
+
+    /**
+     * Soft delete message for a specific user.
+     * Sets the appropriate timestamp based on whether user is sender or receiver.
+     * Permanently deletes if both users have deleted.
+     */
+    public function softDeleteFor($userId)
+    {
+        if ($this->from_id === $userId) {
+            $this->deleted_by_sender_at = now();
+        } elseif ($this->to_id === $userId) {
+            $this->deleted_by_receiver_at = now();
+        }
+        $this->save();
+
+        // Permanent delete when both users have deleted
+        if (!is_null($this->deleted_by_sender_at) && !is_null($this->deleted_by_receiver_at)) {
+            $this->delete();
+            return true;
+        }
+        return false;
     }
 }

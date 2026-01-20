@@ -2,7 +2,7 @@
 
 This document tracks all improvements, enhancements, and optimizations made to the Mini LMS project beyond basic bug fixes.
 
-Last Updated: November 26, 2025
+Last Updated: January 20, 2026
 
 ---
 
@@ -687,6 +687,80 @@ $skill = Skill::create([
 - **Teacher Experience:** Better analytics, activity feed, course management
 - **System Performance:** Faster page loads, optimized queries
 - **Security:** Enhanced file protection, proper authorization
+
+---
+
+## Per-User Soft Delete for Conversations
+
+**Date:** January 20, 2026
+
+**What Changed:**
+- Implemented per-user soft delete for entire conversations
+- Each user can delete conversations independently
+- Messages are only permanently deleted when both users have deleted them
+
+**Implementation:**
+```php
+// Message model - soft delete for specific user
+public function softDeleteFor($userId)
+{
+    if ($this->from_id === $userId) {
+        $this->deleted_by_sender_at = now();
+    } elseif ($this->to_id === $userId) {
+        $this->deleted_by_receiver_at = now();
+    }
+    $this->save();
+
+    // Permanent delete when both users have deleted
+    if (!is_null($this->deleted_by_sender_at) && !is_null($this->deleted_by_receiver_at)) {
+        $this->delete();
+        return true;
+    }
+    return false;
+}
+```
+
+**User Benefit:**
+- Users can clean up their conversation history without affecting the other user
+- Privacy-respecting delete behavior
+- Clean UI with three-dot menu and confirmation popup
+
+**Files Modified:**
+- `app/Models/Message.php`
+- `app/Http/Controllers/MessageController.php`
+- `app/View/Composers/MessageNotificationComposer.php`
+- `resources/views/messages/index.blade.php`
+- `routes/web.php`
+
+---
+
+## UI Fix: Remove Header Border Lines
+
+**Date:** January 20, 2026
+
+**Issue:** Unwanted black border line appearing under the header section (where page title and action button are displayed) on both teacher and student dashboards.
+
+**Root Cause:** The `app-layout.blade.php` component had `border-b border-black` class on the header element.
+
+**Solution:** Removed the border classes from the header element in the layout component.
+
+**Files Modified:**
+- `resources/views/components/app-layout.blade.php` - Removed `border-b border-black` from header
+- `resources/views/layouts/app.blade.php` - Removed `shadow` class from header
+
+---
+
+## UI Fix: Clean Navigation Link Styling
+
+**Date:** January 20, 2026
+
+**Issue:** Navigation links had underline indicators that were visually distracting.
+
+**Solution:** Removed border-based underlines from nav links, using color difference for active state instead.
+
+**Files Modified:**
+- `resources/views/components/nav-link.blade.php` - Removed `border-b-2` classes
+- `resources/views/components/responsive-nav-link.blade.php` - Removed `border-l-4` classes
 
 ---
 

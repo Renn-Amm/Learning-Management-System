@@ -724,3 +724,82 @@ This is the first stable release. No upgrades available.
 ---
 
 **All systems go! Mini LMS v1.0.0 is production-ready.**
+
+---
+
+## Version 1.2.0 Updates (January 20, 2026)
+
+### Per-User Soft Delete for Conversations
+
+**Feature Description:**
+Implemented a per-user soft delete system for entire conversations where:
+- Deleting a conversation hides all messages for the user who deleted it
+- The other user can still see all messages until they delete the conversation too
+- Messages are permanently deleted only when both users have deleted them
+
+**Database Changes:**
+- Added `deleted_by_sender_at` (nullable timestamp)
+- Added `deleted_by_receiver_at` (nullable timestamp)
+- No use of Laravel's global `softDeletes()` trait
+
+**Files Modified:**
+1. `database/migrations/2026_01_19_231222_add_soft_delete_timestamps_to_messages_table.php`
+2. `app/Models/Message.php` - Added `softDeleteFor()`, `isDeletedFor()` methods
+3. `app/Http/Controllers/MessageController.php` - Updated `deleteConversation()` method
+4. `app/View/Composers/MessageNotificationComposer.php` - Exclude soft-deleted from count
+5. `resources/views/messages/conversation.blade.php` - Three-dot menu with delete option
+6. `routes/web.php` - Route `messages.conversation.delete`
+
+**UI/UX Implementation:**
+- Three-dot menu in conversation header (top-right)
+- "Delete Conversation" option in dropdown menu
+- Confirmation popup modal with warning message
+- Clean styling using existing Tailwind classes
+- No layout issues or overlapping elements
+
+**Verification:**
+- [x] User can delete entire conversation
+- [x] Deleted conversation hidden only for the deleting user
+- [x] Other user still sees all messages
+- [x] Permanent delete when both users delete
+- [x] No N+1 queries introduced
+- [x] Clean UI with no layout issues
+- [x] Confirmation modal works correctly
+- [x] Three-dot menu added to messages list (conversation titles)
+
+---
+
+### Fix 11: UI - Remove Header Border Lines
+
+**Issue:** Unwanted black border line appearing under the header section (where page title and action button are displayed) on both teacher and student dashboards.
+
+**Root Cause:** The `app-layout.blade.php` component had `border-b border-black` class on the header element, creating a visible line under the header section.
+
+**Solution:** Removed the border classes from the header element in the layout component.
+
+**Files Modified:**
+- `resources/views/components/app-layout.blade.php` - Removed `border-b border-black` from header
+- `resources/views/layouts/app.blade.php` - Removed `shadow` class from header, changed background to match page
+
+**Verification:**
+- [x] No border line under header on student dashboard
+- [x] No border line under header on teacher dashboard
+- [x] No border line under header on all other pages
+- [x] Navigation bar border preserved (intentional design element)
+
+---
+
+### Fix 12: UI - Clean Navigation Link Styling
+
+**Issue:** Navigation links had underline indicators that were visually distracting.
+
+**Solution:** Removed border-based underlines from nav links, using color difference for active state instead.
+
+**Files Modified:**
+- `resources/views/components/nav-link.blade.php` - Removed `border-b-2` classes
+- `resources/views/components/responsive-nav-link.blade.php` - Removed `border-l-4` classes
+
+**Verification:**
+- [x] Active nav links show as black text
+- [x] Inactive nav links show as gray text
+- [x] No underline indicators on nav links

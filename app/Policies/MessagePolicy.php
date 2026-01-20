@@ -36,10 +36,10 @@ class MessagePolicy
 
     /**
      * Determine if the user can delete the message.
-     * Only the sender can delete their own messages.
+     * Both sender and receiver can soft-delete the message for themselves.
      */
     public function delete(User $user, Message $message): bool
     {
-        return $user->id === $message->from_id;
+        return $user->id === $message->from_id || $user->id === $message->to_id;
     }
 }

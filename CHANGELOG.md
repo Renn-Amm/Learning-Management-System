@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] - 2026-01-20
+
+### Added
+- **Per-User Soft Delete for Conversations**
+  - Entire conversations can now be deleted by each user independently
+  - Deleting a conversation only hides it for the user who deleted it
+  - The other user can still see all messages until they delete the conversation too
+  - Messages are permanently deleted only when both users have deleted them
+  - New database columns: `deleted_by_sender_at` and `deleted_by_receiver_at`
+  - Three-dot menu in conversation header with "Delete Conversation" option
+  - Confirmation popup modal before deleting
+  - Clean UI with no layout issues
+
+### Changed
+- Updated `Message` model with `softDeleteFor()` and `isDeletedFor()` methods
+- Updated `scopeVisibleFor()` to respect per-user soft delete timestamps
+- Updated `MessageController::deleteConversation()` to use soft delete timestamps
+- Updated `MessageNotificationComposer` to exclude soft-deleted messages from unread count
+- Three-dot menu with delete option added to messages list (conversation titles)
+- Added `x-cloak` style support for Alpine.js components
+
+### Fixed
+- **UI: Removed unwanted border lines from header section**
+  - Removed `border-b border-black` from header in `app-layout.blade.php` component
+  - Removed `shadow` class from header in `app.blade.php` layout
+  - Cleaner visual appearance on both teacher and student dashboards
+- **UI: Cleaned up navigation link styling**
+  - Removed underline indicators from nav links
+  - Active state now uses color difference (black vs gray) instead of border
+
+### Technical
+- Migration: `add_soft_delete_timestamps_to_messages_table`
+- Route: `messages.conversation.delete` (DELETE method)
+- No use of Laravel's global `softDeletes()` trait - custom implementation
+
+---
+
 ## [1.1.0] - 2025-11-27
 
 ### Added

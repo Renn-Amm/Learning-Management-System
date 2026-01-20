@@ -76,7 +76,6 @@
     </div>
 
     <script>
-        // Auto-scroll to bottom on page load
         document.addEventListener('DOMContentLoaded', function() {
             const container = document.getElementById('messageContainer');
             container.scrollTop = container.scrollHeight;

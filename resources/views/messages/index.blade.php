@@ -16,8 +16,8 @@
                 @if($conversations->count() > 0)
                     <div class="divide-y divide-black">
                         @foreach($conversations as $conv)
-                            <a href="{{ route('messages.conversation', $conv['partner']) }}" class="block p-6 hover:bg-gray-50 transition">
-                                <div class="flex items-start space-x-4">
+                            <div class="flex items-center p-6 hover:bg-gray-50 transition">
+                                <a href="{{ route('messages.conversation', $conv['partner']) }}" class="flex-1 flex items-start space-x-4">
                                     <div class="w-12 h-12 rounded-full bg-black text-white flex items-center justify-center font-bold text-lg">
                                         {{ strtoupper(substr($conv['partner']->name, 0, 1)) }}
                                     </div>
@@ -40,8 +40,28 @@
                                             {{ Str::limit($conv['last_message']->message_text, 80) }}
                                         </p>
                                     </div>
+                                </a>
+                                <div class="relative ml-4" x-data="{ open: false }">
+                                    <button @click.stop="open = !open" type="button" class="p-2 rounded-full hover:bg-gray-200 transition-colors">
+                                        <svg class="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                                        </svg>
+                                    </button>
+                                    <div x-show="open" 
+                                         x-cloak
+                                         @click.away="open = false"
+                                         class="absolute right-0 mt-2 w-48 bg-white border border-black rounded-lg shadow-lg z-50">
+                                        <button type="button" 
+                                                @click.stop="open = false; document.getElementById('deleteModal-{{ $conv['partner']->id }}').classList.remove('hidden')"
+                                                class="w-full text-left px-4 py-3 text-red-600 hover:bg-gray-100 rounded-lg flex items-center space-x-2">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                            <span>Delete Conversation</span>
+                                        </button>
+                                    </div>
                                 </div>
-                            </a>
+                            </div>
                         @endforeach
                     </div>
                 @else
@@ -59,4 +79,42 @@
             </div>
         </div>
     </div>
+
+    @if($conversations->count() > 0)
+        @foreach($conversations as $conv)
+            <div id="deleteModal-{{ $conv['partner']->id }}" class="hidden fixed inset-0 z-50 overflow-y-auto">
+                <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+                    <div class="fixed inset-0 bg-black opacity-40" onclick="document.getElementById('deleteModal-{{ $conv['partner']->id }}').classList.add('hidden')"></div>
+                    
+                    <div class="relative bg-white rounded-lg border border-black shadow-xl max-w-md w-full mx-auto p-6 z-10">
+                        <div class="text-center">
+                            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                                <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-semibold text-black mb-2">Delete Conversation</h3>
+                            <p class="text-gray-600 mb-6">Are you sure you want to delete this entire conversation with <strong>{{ $conv['partner']->name }}</strong>? This will remove all messages from your view. The other user will still be able to see the messages.</p>
+                            
+                            <div class="flex justify-center space-x-3">
+                                <button type="button" 
+                                        onclick="document.getElementById('deleteModal-{{ $conv['partner']->id }}').classList.add('hidden')"
+                                        class="px-4 py-2 bg-white border border-black text-black rounded-lg hover:bg-gray-100 font-medium">
+                                    Cancel
+                                </button>
+                                <form action="{{ route('messages.conversation.delete', $conv['partner']) }}" method="POST" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" 
+                                            class="px-4 py-2 bg-red-600 border border-red-600 text-white rounded-lg hover:bg-red-700 font-medium">
+                                        Delete Conversation
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endforeach
+    @endif
 </x-app-layout>

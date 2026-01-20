@@ -163,21 +163,29 @@ class MessageController extends Controller
             ->with('success', 'Message updated successfully.');
     }
 
+    /**
+     * Soft delete a message for the current user.
+     * Sets deleted_by_sender_at or deleted_by_receiver_at based on user role.
+     * Permanently deletes only when both timestamps are set.
+     */
     public function destroy(Message $message)
     {
         $this->authorize('delete', $message);
 
-        $recipientId = $message->to_id === auth()->id() ? $message->from_id : $message->to_id;
-        $recipient = User::find($recipientId);
+        $userId = auth()->id();
+        $partnerId = $message->to_id === $userId ? $message->from_id : $message->to_id;
+        $partner = User::find($partnerId);
         
-        $message->delete();
+        // Soft delete for current user (sets appropriate timestamp)
+        $permanentlyDeleted = $message->softDeleteFor($userId);
 
-        return redirect()->route('messages.conversation', $recipient)
+        return redirect()->route('messages.conversation', $partner)
             ->with('success', 'Message deleted successfully.');
     }
 
     /**
-     * Hide entire conversation with a user (personal delete).
+     * Soft delete entire conversation with a user.
+     * Sets deleted_by_sender_at or deleted_by_receiver_at for each message.
      * Only hides messages for current user, other user still sees them.
      */
     public function deleteConversation(User $user)
@@ -185,7 +193,7 @@ class MessageController extends Controller
         $currentUserId = auth()->id();
         $partnerId = $user->id;
 
-        // Hide all messages between these two users (for current user only)
+        // Soft delete all messages between these two users (for current user only)
         $messages = Message::where(function ($q) use ($currentUserId, $partnerId) {
             $q->where('from_id', $currentUserId)->where('to_id', $partnerId);
         })->orWhere(function ($q) use ($currentUserId, $partnerId) {
@@ -193,10 +201,10 @@ class MessageController extends Controller
         })->get();
 
         foreach ($messages as $message) {
-            $message->hideFor($currentUserId);
+            $message->softDeleteFor($currentUserId);
         }
 
         return redirect()->route('messages.index')
-            ->with('success', 'Conversation hidden successfully.');
+            ->with('success', 'Conversation deleted successfully.');
     }
 }

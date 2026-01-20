@@ -53,6 +53,7 @@ Route::middleware(['auth', 'preventBackHistory'])->group(function () {
     // Messages (accessible by all authenticated users)
     Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
     Route::get('/messages/create', [MessageController::class, 'create'])->name('messages.create');
+    Route::delete('/messages/conversation/{user}', [MessageController::class, 'deleteConversation'])->name('messages.conversation.delete');
     Route::get('/messages/{user}', [MessageController::class, 'conversation'])->name('messages.conversation');
     Route::post('/messages/{user}', [MessageController::class, 'store'])->name('messages.store');
 
