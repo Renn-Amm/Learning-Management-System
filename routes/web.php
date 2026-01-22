@@ -18,7 +18,7 @@ Route::get('/', function () {
         ->header('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
 })->name('welcome');
 
-Route::middleware(['auth', 'preventBackHistory'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

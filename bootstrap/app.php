@@ -16,6 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'ensureStudent' => \App\Http\Middleware\EnsureStudent::class,
             'preventBackHistory' => \App\Http\Middleware\PreventBackHistory::class,
         ]);
+        
+        $middleware->appendToGroup('web', [
+            \App\Http\Middleware\PreventBackHistory::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
