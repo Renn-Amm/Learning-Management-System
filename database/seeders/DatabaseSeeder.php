@@ -17,41 +17,49 @@ class DatabaseSeeder extends Seeder
     {
         // Define categories with specific colors
         $categories = [
-            'Programming' => '#4ECDC4',  // Teal/Blue
-            'Math' => '#52B788',         // Green
-            'Business' => '#FB5607',     // Orange
-            'Design' => '#8338EC',       // Purple
+            'Programming' => '#4ECDC4',
+            'Math' => '#52B788',
+            'Business' => '#FB5607',
+            'Design' => '#8338EC',
         ];
 
         $createdCategories = [];
         foreach ($categories as $categoryName => $colorCode) {
-            $createdCategories[$categoryName] = Category::create([
-                'name' => $categoryName,
-                'color_code' => $colorCode
-            ]);
+            $createdCategories[$categoryName] = Category::firstOrCreate(
+                ['name' => $categoryName],
+                ['color_code' => $colorCode]
+            );
         }
 
-        $teacher = User::create([
-            'name' => 'John Teacher',
-            'email' => 'teacher@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'teacher',
-        ]);
+        // Users
+        $teacher = User::firstOrCreate(
+            ['email' => 'teacher@example.com'],
+            [
+                'name' => 'John Teacher',
+                'password' => Hash::make('password'),
+                'role' => 'teacher',
+            ]
+        );
 
-        $student1 = User::create([
-            'name' => 'Alice Student',
-            'email' => 'student1@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'student',
-        ]);
+        $student1 = User::firstOrCreate(
+            ['email' => 'student1@example.com'],
+            [
+                'name' => 'Alice Student',
+                'password' => Hash::make('password'),
+                'role' => 'student',
+            ]
+        );
 
-        $student2 = User::create([
-            'name' => 'Bob Student',
-            'email' => 'student2@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'student',
-        ]);
+        $student2 = User::firstOrCreate(
+            ['email' => 'student2@example.com'],
+            [
+                'name' => 'Bob Student',
+                'password' => Hash::make('password'),
+                'role' => 'student',
+            ]
+        );
 
+        // Courses and Lessons
         $coursesData = [
             'Programming' => [
                 ['title' => 'Python for Beginners', 'description' => 'Learn Python programming from scratch. Cover variables, data types, functions, and object-oriented programming.', 'level' => 'beginner', 'skills' => ['Python', 'OOP', 'Data Types', 'Functions']],
@@ -86,17 +94,19 @@ class DatabaseSeeder extends Seeder
         $courses = [];
         foreach ($coursesData as $categoryName => $categoryCoursesData) {
             foreach ($categoryCoursesData as $courseData) {
-                $course = Course::create([
-                    'title' => $courseData['title'],
-                    'description' => $courseData['description'],
-                    'level' => $courseData['level'],
-                    'teacher_id' => $teacher->id,
-                    'category_id' => $createdCategories[$categoryName]->id,
-                ]);
-                
+                $course = Course::firstOrCreate(
+                    ['title' => $courseData['title']],
+                    [
+                        'description' => $courseData['description'],
+                        'level' => $courseData['level'],
+                        'teacher_id' => $teacher->id,
+                        'category_id' => $createdCategories[$categoryName]->id,
+                    ]
+                );
+
                 $courses[] = $course;
-                
-                // Create skills and attach to course (skills use category color)
+
+                // Create skills and attach to course
                 $categoryColor = $categories[$categoryName];
                 if (isset($courseData['skills'])) {
                     foreach ($courseData['skills'] as $skillName) {
@@ -104,36 +114,35 @@ class DatabaseSeeder extends Seeder
                             ['name' => $skillName],
                             ['color_code' => $categoryColor]
                         );
-                        $course->skills()->attach($skill->id);
+                        if (!$course->skills->contains($skill->id)) {
+                            $course->skills()->attach($skill->id);
+                        }
                     }
                 }
-                
+
+                // Lessons
                 for ($i = 1; $i <= 3; $i++) {
-                    Lesson::create([
-                        'course_id' => $course->id,
-                        'title' => "Lesson {$i}: " . substr($courseData['title'], 0, 30),
-                        'content' => "This is lesson {$i} of {$courseData['title']}. Learn key concepts and practical skills.",
-                        'order_number' => $i,
-                        'duration' => 30 + ($i * 10),
-                    ]);
+                    Lesson::firstOrCreate(
+                        ['course_id' => $course->id, 'title' => "Lesson {$i}: " . substr($courseData['title'], 0, 30)],
+                        [
+                            'content' => "This is lesson {$i} of {$courseData['title']}. Learn key concepts and practical skills.",
+                            'order_number' => $i,
+                            'duration' => 30 + ($i * 10),
+                        ]
+                    );
                 }
             }
         }
 
-        Enrollment::create([
-            'user_id' => $student1->id,
-            'course_id' => $courses[0]->id,
-            'progress' => 0,
-            'is_completed' => false,
-            'viewed_lessons' => [],
-        ]);
+        // Enrollments
+        Enrollment::firstOrCreate(
+            ['user_id' => $student1->id, 'course_id' => $courses[0]->id],
+            ['progress' => 0, 'is_completed' => false, 'viewed_lessons' => []]
+        );
 
-        Enrollment::create([
-            'user_id' => $student2->id,
-            'course_id' => $courses[1]->id,
-            'progress' => 0,
-            'is_completed' => false,
-            'viewed_lessons' => [],
-        ]);
+        Enrollment::firstOrCreate(
+            ['user_id' => $student2->id, 'course_id' => $courses[1]->id],
+            ['progress' => 0, 'is_completed' => false, 'viewed_lessons' => []]
+        );
     }
 }
