@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Course;
 use App\Models\Lesson;
+use App\Models\UserActivity;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -96,7 +97,26 @@ class LessonController extends Controller
                     'viewed_lessons' => $viewedLessons,
                     'progress' => $progress,
                     'is_completed' => $isCompleted,
+                    'last_accessed_at' => now(),
                 ]);
+
+                // MWA2 REQUIREMENT: Usage Tracking - Track lesson view
+                UserActivity::log(
+                    auth()->id(),
+                    UserActivity::ACTION_LESSON_VIEWED,
+                    $lesson,
+                    ['lesson_title' => $lesson->title, 'course_title' => $course->title]
+                );
+
+                // MWA2 REQUIREMENT: Usage Tracking - Track course completion
+                if ($isCompleted) {
+                    UserActivity::log(
+                        auth()->id(),
+                        UserActivity::ACTION_COURSE_COMPLETED,
+                        $course,
+                        ['course_title' => $course->title, 'total_lessons' => $totalLessons]
+                    );
+                }
 
                 return redirect()->back()->with('success', 'Lesson marked as done! Progress updated.');
             }

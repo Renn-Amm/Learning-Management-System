@@ -15,11 +15,13 @@ class Enrollment extends Model
         'progress',
         'is_completed',
         'viewed_lessons',
+        'last_accessed_at',
     ];
 
     protected $casts = [
         'is_completed' => 'boolean',
         'viewed_lessons' => 'array',
+        'last_accessed_at' => 'datetime',
     ];
 
     public function user()

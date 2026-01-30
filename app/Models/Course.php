@@ -17,6 +17,7 @@ class Course extends Model
         'teacher_id',
         'category_id',
         'is_published',
+        'duration_hours',
     ];
 
     protected $casts = [

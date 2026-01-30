@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\StudentJoinedCourse;
 use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\UserActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -29,9 +30,20 @@ class EnrollmentController extends Controller
             'is_completed' => false,
         ]);
 
+        // MWA2 REQUIREMENT: Usage Tracking (Challenging Level)
+        // Track enrollment action for analytics and teacher dashboard
+        UserActivity::log(
+            $user->id,
+            UserActivity::ACTION_COURSE_ENROLLED,
+            $course,
+            ['course_title' => $course->title, 'category' => $course->category->name ?? 'N/A']
+        );
+
+        // MWA2 REQUIREMENT: Queued Email Notifications (Advanced Level)
+        // Use queue() instead of send() for async processing
         try {
             $course->load('teacher');
-            Mail::to($course->teacher->email)->send(new StudentJoinedCourse($user, $course));
+            Mail::to($course->teacher->email)->queue(new StudentJoinedCourse($user, $course));
             \Log::info('Enrollment email sent', [
                 'teacher' => $course->teacher->email,
                 'student' => $user->name,
