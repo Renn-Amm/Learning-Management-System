@@ -77,6 +77,11 @@
                             />
                             <x-input-error class="mt-2" :messages="$errors->get('skills')" />
                             <p class="text-sm text-gray-600 mt-1">Required: Enter at least one skill for this course</p>
+                            
+                            {{-- Skills API Integration: Skill Suggestions --}}
+                            <div class="mt-3">
+                                @livewire('skill-suggestions')
+                            </div>
                         </div>
 
                         <div class="mb-4">

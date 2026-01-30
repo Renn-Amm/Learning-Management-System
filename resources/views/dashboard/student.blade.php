@@ -18,6 +18,11 @@
                 </div>
             @endif
 
+            {{-- Daily Motivational Quote --}}
+            <div class="mb-6">
+                @livewire('daily-quote')
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div class="bg-white border border-black rounded-lg p-6">
                     <h3 class="text-sm font-semibold text-black mb-2">Completed Courses</h3>
@@ -150,6 +155,18 @@
                         @endforeach
                     @endif
                 </div>
+            </div>
+
+            {{-- Skills API Integration: Student Skill Tracker --}}
+            <div class="mt-6">
+                @livewire('student-skill-tracker')
+            </div>
+
+            {{-- Recommended Books for Learning --}}
+            <div class="bg-white border border-black rounded-lg p-6 mt-6">
+                <h3 class="text-lg font-semibold text-black mb-4">Recommended Books</h3>
+                <p class="text-sm text-gray-600 mb-4">Discover books to enhance your learning journey</p>
+                @livewire('book-recommendations')
             </div>
         </div>
     </div>
