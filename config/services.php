@@ -35,4 +35,23 @@ return [
         ],
     ],
 
+    'openlibrary' => [
+        'url' => env('OPEN_LIBRARY_BASE_URL', 'https://openlibrary.org'),
+        'enabled' => env('OPENLIBRARY_ENABLED', true),
+        'cache_duration' => env('OPENLIBRARY_CACHE_DURATION', 3600),
+    ],
+
+    'zenquotes' => [
+        'url' => env('ZEN_QUOTES_BASE_URL', 'https://zenquotes.io'),
+        'enabled' => env('ZENQUOTES_ENABLED', true),
+        'cache_duration' => env('ZENQUOTES_CACHE_DURATION', 86400),
+    ],
+
+    'skills_api' => [
+        'key' => env('SKILL_METADATA_API_KEY'),
+        'url' => env('SKILLS_API_BASE_URL', 'https://emsiservices.com/skills'),
+        'enabled' => env('SKILLS_API_ENABLED', true),
+        'cache_duration' => env('SKILLS_API_CACHE_DURATION', 86400),
+    ],
+
 ];

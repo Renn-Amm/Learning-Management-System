@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Mail\NewMessageReceived;
 use App\Models\Message;
 use App\Models\User;
+use App\Models\UserActivity;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -103,9 +104,18 @@ class MessageController extends Controller
             'message_text' => $validated['message_text'],
         ]);
 
+        // MWA2 REQUIREMENT: Usage Tracking - Track message sent
+        UserActivity::log(
+            auth()->id(),
+            UserActivity::ACTION_MESSAGE_SENT,
+            $message,
+            ['recipient_name' => $user->name, 'message_preview' => substr($validated['message_text'], 0, 50)]
+        );
+
+        // MWA2 REQUIREMENT: Queued Email - Use queue() for async processing
         try {
             $message->load(['sender', 'recipient']);
-            Mail::to($user->email)->send(new NewMessageReceived($message));
+            Mail::to($user->email)->queue(new NewMessageReceived($message));
             \Log::info('Message email sent', [
                 'recipient' => $user->email,
                 'sender' => auth()->user()->name,
