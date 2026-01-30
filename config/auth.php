@@ -14,6 +14,10 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'sanctum' => [
+            'driver' => 'sanctum',
+            'provider' => null,
+        ],
     ],
 
     // User providers (eloquent or database)
