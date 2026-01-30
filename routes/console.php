@@ -2,6 +2,10 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
+
+// Daily backup at 2 AM with 10-day retention
+Schedule::command('backup:daily')->daily()->at('02:00');
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
