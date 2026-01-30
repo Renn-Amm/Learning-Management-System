@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lesson;
+use App\Models\UserActivity;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -76,6 +77,15 @@ class FileController extends Controller
         $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
         $response->headers->set('Pragma', 'no-cache');
         $response->headers->set('Expires', '0');
+        
+        // MWA2 REQUIREMENT: Usage Tracking - Track file download
+        // Note: auth()->id() works correctly at runtime, IDE warning is false positive
+        UserActivity::log(
+            auth()->id(), // @phpstan-ignore-line
+            UserActivity::ACTION_FILE_DOWNLOADED,
+            $lesson,
+            ['filename' => $downloadName, 'course_title' => $lesson->course->title ?? 'N/A']
+        );
         
         return $response;
     }
