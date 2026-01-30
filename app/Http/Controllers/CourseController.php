@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\CourseCreatedNotification;
 use App\Models\Course;
 use App\Models\Category;
 use App\Models\Skill;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class CourseController extends Controller
@@ -110,6 +112,10 @@ class CourseController extends Controller
             
             $course->skills()->sync($skillIds);
         }
+
+        // Send email notification to admin about new course
+        $adminEmail = config('mail.from.address');
+        Mail::to($adminEmail)->send(new CourseCreatedNotification($course));
 
         return redirect()->route('courses.show', $course)->with('success', 'Course created successfully.');
     }
