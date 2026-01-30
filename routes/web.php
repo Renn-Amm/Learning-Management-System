@@ -19,7 +19,7 @@ Route::get('/', function () {
         ->header('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
 })->name('welcome');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/resources', [ResourcesController::class, 'index'])->name('resources.index');
 
